@@ -1,3 +1,16 @@
 EECS ABET Objectives Management Webpage
 
-Used by Oregon State's School of EECS to track ABET objectives for courses.
+Used by Oregon State's School of EECS to track ABET objectives and Course Learning Objectives (CLOs) for courses.
+
+index.php:
+	The main page. Used to view and update CLOs objectives.
+
+approve.php:
+	Used to submit changes to CLOs.
+
+style.css:
+	Defines the default style for web pages.
+
+tables.sql:
+	MySQL table design. Not to be included in production web directory.
+
