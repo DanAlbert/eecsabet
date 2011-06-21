@@ -19,34 +19,52 @@ if (!mysql_select_db($database))
 }
 
 $courseInstanceID = $_REQUEST['courseInstanceID'];
-$outcomeID = $_REQUEST['outcomeID'];
 $assessed = $_POST['assessed'];
 $satisfactory = $_POST['satisfactory'];
 
-if ($assessed == '')
+mysql_query('BEGIN TRANSACTION;', $con);
+for ($i = 1; $i <= sizeof($assessed); $i++)
 {
-	mysql_close($con);
-	header('Location: index.php?courseInstanceID=' . $courseInstanceID . '&error=3');
-	return;
+	if ($assessed == '')
+	{
+		mysql_query('ROLLBACK;', $con);
+		mysql_close($con);
+		header('Location: index.php?courseInstanceID=' . $courseInstanceID . '&error=3');
+		return;
+	}
+
+	if ($satisfactory == '')
+	{
+		mysql_query('ROLLBACK;', $con);
+		mysql_close($con);
+		header('Location: index.php?courseInstanceID=' . $courseInstanceID . '&error=4');
+		return;
+	}
+
+	$query = "UPDATE CourseInstanceCLO SET Assessed='" . $assessed[$i] . "', SatisfactoryScore='" . $satisfactory[$i] . "' WHERE CLOID='$i' AND CourseInstanceID='$courseInstanceID';";
+	//print $query . '<br />';
+	
+	mysql_query($query, $con);
+	if (mysql_errno() != 0)
+	{
+		mysql_query('ROLLBACK;', $con);
+		header('Location: index.php?courseInstanceID=' . $courseInstanceID . '&error=5');
+		return;
+	}
 }
 
-if ($satisfactory == '')
-{
-	mysql_close($con);
-	header('Location: index.php?courseInstanceID=' . $courseInstanceID . '&error=4');
-	return;
-}
-
-$query = "UPDATE CourseInstanceCLO SET Assessed='$assessed', SatisfactoryScore='$satisfactory', State='Approved' WHERE CLOID='$outcomeID' AND CourseInstanceID='$courseInstanceID';";
+$query = "UPDATE CourseInstance SET State='Approved' WHERE ID='$courseInstanceID';";
 mysql_query($query, $con);
-if (mysql_errno() == 0)
+if (mysql_errno() != 0)
 {
-	header('Location: index.php?courseInstanceID=' . $courseInstanceID . '&error=0');
-}
-else
-{
+	mysql_query('ROLLBACK;', $con);
 	header('Location: index.php?courseInstanceID=' . $courseInstanceID . '&error=5');
+	return;
 }
 
+mysql_query('COMMIT;', $con);
 mysql_close($con);
+
+header('Location: index.php?courseInstanceID=' . $courseInstanceID . '&error=0');
+
 ?>

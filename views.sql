@@ -4,7 +4,8 @@ SELECT	CourseInstance.ID AS CourseInstanceID,
 		Course.CourseNumber,
 		CourseInstance.Term,
 		CourseInstance.Year,
-		Instructor.Name
+		Instructor.Name,
+		CourseInstance.State
 FROM Course, CourseInstance, Instructor
 WHERE Course.ID = CourseInstance.CourseID
 AND Instructor.Email = CourseInstance.Instructor;
@@ -14,13 +15,13 @@ SELECT	CourseInstance.ID AS CourseInstanceID,
 		CLO.CLONumber,
 		CLO.Title,
 		CLO.Description,
-		GROUP_CONCAT(CLOOutcomes.ABETOutcome SEPARATOR ', ') AS Outcomes,
+		GROUP_CONCAT(DISTINCT CLOOutcomes.ABETOutcome ORDER BY CLOOutcomes.ABETOutcome ASC SEPARATOR ', ') AS Outcomes,
 		CourseInstanceCLO.Assessed,
 		CourseInstanceCLO.MeanScore,
 		CourseInstanceCLO.MedianScore,
 		CourseInstanceCLO.HighScore,
-		CourseInstanceCLO.SatisfactoryScore,
-		CourseInstanceCLO.State
+		CourseInstanceCLO.SatisfactoryScore
 FROM CourseInstance, CourseInstanceCLO, CLO, CLOOutcomes
 WHERE CourseInstance.CourseID=CLO.CourseID AND CourseInstance.ID=CourseInstanceCLO.CourseInstanceID AND CourseInstanceCLO.CLOID=CLO.ID AND CLOOutcomes.CLOID=CLO.ID
-GROUP BY CLOOutcomes.CLOID;
+GROUP BY CourseInstance.ID, CLOOutcomes.CLOID
+ORDER BY CourseInstance.ID, CLO.CLONumber;

@@ -7,10 +7,6 @@
 </head>
 <body>
 
-<!--<h1>Editing ABET Details for ECE 271</h1>
-<h2>Spring 2008</h2>
-<h3>Shuman, Matt</h3>-->
-
 <?php
 
 $hostname = 'mysql.gingerhq.net';
@@ -41,6 +37,12 @@ print '<h1>Editing ABET Details for ' . $row['Dept'] . ' ' . $row['CourseNumber'
 print '<h2>' . $row['Term'] . ' ' . $row['Year'] . '</h2>';
 print '<h3>' . $row['Name'] . '</h3>';
 
+$state = $row['State'];
+if ($state == 'Finalized')
+{
+	print '<p>ABET information for this course has already been finalized and may no longer be revised. If you need to fix an error, please contact <a href="mailto:foobar@gmail.com">foobar</a>.<p>';
+}
+
 mysql_close($con);
 
 if (isset($_REQUEST['error']))
@@ -68,6 +70,33 @@ if (isset($_REQUEST['error']))
 ?>
 
 <h2>Course Learning Outcomes (CLOs)</h2>
+<?php
+
+if ($state != 'Finalized')
+{
+	print '<form action="';
+}
+
+switch ($state)
+{
+case 'Sent':
+case 'Viewed':
+case 'Approved':
+	print 'approve.php';
+	break;
+
+case 'Ready':
+	print 'finalize.php';
+	break;
+}
+
+if ($state != 'Finalized')
+{
+	print '?courseInstanceID=' . $courseInstanceID . '" method="POST">';
+}
+
+?>
+
 <table>
 	<thead>
 		<tr>
@@ -79,8 +108,6 @@ if (isset($_REQUEST['error']))
 			<th>Median Score</th>
 			<th>High Score</th>
 			<th>Satisfactory Score**</th>
-			<th>State</th>
-			<th>Approve</th>
 		</tr>
 	</thead>
 	<tbody>
@@ -91,8 +118,6 @@ if (isset($_REQUEST['error']))
 	$username = 'eecsabet';
 	$password = 'hP5fRjZbZ6KcL7MU';
 	$database = 'eecsabet';
-	
-	$courseInstanceID = 1;
 
 	$con = mysql_connect($hostname, $username, $password);
 	if (!$con)
@@ -112,32 +137,21 @@ if (isset($_REQUEST['error']))
 	
 	while ($row = mysql_fetch_array($result))
 	{
-		print '<tr><form action="';
-		
-		switch ($row['State'])
-		{
-		case 'Sent':
-		case 'Viewed':
-		case 'Approved':
-			print 'approve.php';
-			break;
-		
-		case 'Ready':
-		case 'Finalized':
-			print 'finalize.php';
-			break;
-		}
-		
-		print '?courseInstanceID=' . $courseInstanceID . '&outcomeID=' . $row['CLONumber'] . '" method="POST">';
+		print '<tr>';
 		print '<td>' . $row['CLONumber'] . '</td>';
 		print '<td>' . $row['Description'] . '</td>';
 		print '<td>' . $row['Outcomes'] . '</td>';
-		print '<td>' . $row['Assessed'] . '<br /><input type="text" name="assessed" /></td>';
+		print '<td>' . $row['Assessed'];
+		if ($state != 'Finalized')
+		{
+			print '<br /><input type="text" name="assessed[' . $row['CLONumber'] . ']" />';
+		}
+		print '</td>';
 		
 		print '<td>' . $row['MeanScore'] . '%';
-		if (($row['State'] == 'Ready') OR ($row['State'] == 'Finalized'))
+		if ($state == 'Ready')
 		{
-			print '<br /><input type="text" name="mean" />';
+			print '<br /><input type="text" name="mean[' . $row['CLONumber'] . ']" />';
 		}
 		print '</td>';
 		
@@ -149,40 +163,25 @@ if (isset($_REQUEST['error']))
 		{
 			print '<td>' . $row['MedianScore'] . '%';
 		}
-		if (($row['State'] == 'Ready') OR ($row['State'] == 'Finalized'))
+		if ($state == 'Ready')
 		{
-			print '<br /><input type="text" name="median" />';
+			print '<br /><input type="text" name="median[' . $row['CLONumber'] . ']" />';
 		}
 		print '</td>';
 		
 		print '<td>' . $row['HighScore'] . '%';
-		if (($row['State'] == 'Ready') OR ($row['State'] == 'Finalized'))
+		if ($state == 'Ready')
 		{
-			print '<br /><input type="text" name="high" />';
+			print '<br /><input type="text" name="high[' . $row['CLONumber'] . ']" />';
 		}
 		print '</td>';
 		
-		print '<td>' . $row['SatisfactoryScore'] . '%<br /><input type="text" name="satisfactory" /></td>';
-		
-		print '<td>' . $row['State'] . '</td>';
-		
-		switch ($row['State'])
+		print '<td>' . $row['SatisfactoryScore'] . '%';
+		if ($state != 'Finalized')
 		{
-		case 'Sent':
-		case 'Viewed':
-			print '<td><input type="submit" value="Approve" /></td>';
-			break;
-		
-		case 'Approved':
-		case 'Finalized':
-			print '<td><input type="submit" value="Update" /></td>';
-			break;
-		
-		case 'Ready':
-			print '<td><input type="submit" value="Finalize" /></td>';
-			break;
+			print '<br /><input type="text" name="satisfactory[' . $row['CLONumber'] . ']" />';
 		}
-		print '</form></tr>';
+		print '</td>';
 	}
 	
 	mysql_close($con);
@@ -190,6 +189,31 @@ if (isset($_REQUEST['error']))
 	
 	</tbody>
 </table>
+
+<?php
+
+switch ($state)
+{
+case 'Sent':
+case 'Viewed':
+	print '<input type="submit" value="Approve" />';
+	break;
+
+case 'Approved':
+	print '<input type="submit" value="Update" />';
+	break;
+
+case 'Ready':
+	print '<input type="submit" value="Finalize" />';
+	break;
+}
+
+if ($state != 'Finalized')
+{
+	print '</form>';
+}
+
+?>
 
 </body>
 </html>

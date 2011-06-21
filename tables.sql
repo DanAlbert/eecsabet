@@ -24,6 +24,7 @@ CREATE TABLE CourseInstance
 	Instructor VARCHAR(255) NOT NULL,
 	Term SET('Fall', 'Winter', 'Spring', 'Summer') NOT NULL,
 	Year INT NOT NULL,
+	State SET ('Sent', 'Viewed', 'Approved', 'Ready', 'Finalized'),
 	PRIMARY KEY (ID),
 	UNIQUE (CourseID, Instructor, Term, Year),
 	FOREIGN KEY (CourseID) REFERENCES Course (ID),
@@ -67,7 +68,6 @@ CREATE TABLE CourseInstanceCLO
 	MedianScore INT,
 	HighScore INT,
 	SatisfactoryScore INT,
-	State SET ('Sent', 'Viewed', 'Approved', 'Ready', 'Finalized'),
 	PRIMARY KEY (CLOID, CourseInstanceID),
 	FOREIGN KEY (CLOID) REFERENCES CLO (ID),
 	FOREIGN KEY (CourseInstanceID) REFERENCES CourseInstance (ID)
