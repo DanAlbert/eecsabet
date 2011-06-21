@@ -36,6 +36,7 @@ $row = mysql_fetch_array($result);
 print '<h1>Editing ABET Details for ' . $row['Dept'] . ' ' . $row['CourseNumber'] . '</h1>';
 print '<h2>' . $row['Term'] . ' ' . $row['Year'] . '</h2>';
 print '<h3>' . $row['Name'] . '</h3>';
+print '<p>' . $row['Description'] . '</p>';
 
 $state = $row['State'];
 $prep = $row['CommentPrep'];

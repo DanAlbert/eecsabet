@@ -19,7 +19,6 @@ if (!mysql_select_db($database))
 }
 
 $courseInstanceID = mysql_real_escape_string($_REQUEST['courseInstanceID']);
-$comments = mysql_real_escape_string($_POST['comments']);
 
 $prep = mysql_real_escape_string($_POST['prep']);
 $prepActions = mysql_real_escape_string($_POST['prepActions']);

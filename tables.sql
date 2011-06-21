@@ -10,6 +10,7 @@ CREATE TABLE Course
 	ID INT AUTO_INCREMENT NOT NULL,
 	Dept VARCHAR(4),
 	CourseNumber INT,
+	Description TEXT NOT NULL DEFAULT '',
 	PRIMARY KEY(ID),
 	UNIQUE (Dept, CourseNumber)
 ) ENGINE=InnoDB;
