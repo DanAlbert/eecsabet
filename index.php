@@ -7,21 +7,60 @@
 </head>
 <body>
 
-<h1>Editing ABET Details for ECE 271</h1>
+<!--<h1>Editing ABET Details for ECE 271</h1>
 <h2>Spring 2008</h2>
-<h3>Shuman, Matt</h3>
+<h3>Shuman, Matt</h3>-->
 
 <?php
+
+$hostname = 'mysql.gingerhq.net';
+$username = 'eecsabet';
+$password = 'hP5fRjZbZ6KcL7MU';
+$database = 'eecsabet';
+
+$courseInstanceID = 1;
+
+$con = mysql_connect($hostname, $username, $password);
+if (!$con)
+{
+	mysql_close($con);
+	die('Unable to connect to database: ' . mysql_error());
+}
+
+if (!mysql_select_db($database))
+{
+	mysql_close($con);
+	die('Unable to select database: ' . mysql_error());
+}
+
+$query = "SELECT * FROM CourseInstanceInformation WHERE CourseInstanceID=$courseInstanceID;";
+$result = mysql_query($query, $con);
+$row = mysql_fetch_array($result);
+
+print '<h1>Editing ABET Details for ' . $row['Dept'] . ' ' . $row['CourseNumber'] . '</h1>';
+print '<h2>' . $row['Term'] . ' ' . $row['Year'] . '</h2>';
+print '<h3>' . $row['Name'] . '</h3>';
+
+mysql_close($con);
 
 if (isset($_REQUEST['error']))
 {
 	switch ($_REQUEST['error'])
 	{
+	case 0:
+		print 'CLO Updated Successfully.';
+		break;
+		
 	case 3:
 		print 'You must provide how/where the outcome is assessed before approving.';
 		break;
+		
 	case 4:
 		print 'You must provide the satisfactory score before approving.';
+		break;
+	
+	case 5:
+		print 'An error occurred while submitting changes to the server.';
 		break;
 	}
 }
@@ -40,62 +79,115 @@ if (isset($_REQUEST['error']))
 			<th>Median Score</th>
 			<th>High Score</th>
 			<th>Satisfactory Score**</th>
+			<th>State</th>
 			<th>Approve</th>
 		</tr>
 	</thead>
 	<tbody>
-		<tr>
-			<form action="approve.php?courseID=271&outcomeID=1" method="POST">
-				<td>1</td>
-				<td><strong>Design</strong> combinational and sequential systems using integrated circuits available on the market.</td>
-				<td>A,C,K</td>
-				<td>Lab 1<br /><input type="text" name="assessed" /></td>
-				<td>103%<br /><input type="text" name="mean" /></td>
-				<td>N/A<br /><input type="text" name="median" /></td>
-				<td>130%<br /><input type="text" name="high" /></td>
-				<td>80%<br /><input type="text" name="satisfactory" /></td>
-				<td><input type="submit" value="Approve" /></td>
-			</form>
-		</tr>
-		<tr>
-			<form action="approve.php?courseID=271&outcomeID=2" method="POST">
-				<td>2</td>
-				<td><strong>Implement and test</strong> the designed circuits using current laboratory equipment and testing techniques.</td>
-				<td>A,C,K</td>
-				<td>Lab 3<br /><input type="text" name="assessed" /></td>
-				<td>94%<br /><input type="text" name="mean" /></td>
-				<td>N/A<br /><input type="text" name="median" /></td>
-				<td>138%<br /><input type="text" name="high" /></td>
-				<td>80%<br /><input type="text" name="satisfactory" /></td>
-				<td><input type="submit" value="Approve" /></td>
-			</form>
-		</tr>
-		<tr>
-			<form action="approve.php?courseID=271&outcomeID=3" method="POST">
-				<td>3</td>
-				<td><strong>Develop</strong> a small project, which usually consists of the design of a digital controller. The controller specification is provided in text form, and the students are exposed to all design phases: formal specification, design of gate networks, implementation, and testing.</td>
-				<td>A,B,C,E,K,O,Q</td>
-				<td>Project<br /><input type="text" name="assessed" /></td>
-				<td>83%<br /><input type="text" name="mean" /></td>
-				<td>N/A<br /><input type="text" name="median" /></td>
-				<td>150%<br /><input type="text" name="high" /></td>
-				<td>80%<br /><input type="text" name="satisfactory" /></td>
-				<td><input type="submit" value="Approve" /></td>
-			</form>
-		</tr>
-		<tr>
-			<form action="approve.php?courseID=271&outcomeID=4" method="POST">
-				<td>4</td>
-				<td><strong>Report</strong> the develpment of the experiments and laboratory results in written form.</td>
-				<td>G</td>
-				<td>Project<br /><input type="text" name="assessed" /></td>
-				<td>83%<br /><input type="text" name="mean" /></td>
-				<td>N/A<br /><input type="text" name="median" /></td>
-				<td>150%<br /><input type="text" name="high" /></td>
-				<td>80%<br /><input type="text" name="satisfactory" /></td>
-				<td><input type="submit" value="Approve" /></td>
-			</form>
-		</tr>
+	
+	<?php
+	
+	$hostname = 'mysql.gingerhq.net';
+	$username = 'eecsabet';
+	$password = 'hP5fRjZbZ6KcL7MU';
+	$database = 'eecsabet';
+	
+	$courseInstanceID = 1;
+
+	$con = mysql_connect($hostname, $username, $password);
+	if (!$con)
+	{
+		mysql_close($con);
+		die('Unable to connect to database: ' . mysql_error());
+	}
+
+	if (!mysql_select_db($database))
+	{
+		mysql_close($con);
+		die('Unable to select database: ' . mysql_error());
+	}
+	
+	$query = "SELECT * FROM CourseInstanceCLOInformation WHERE CourseInstanceID='$courseInstanceID';";
+	$result = mysql_query($query, $con);
+	
+	while ($row = mysql_fetch_array($result))
+	{
+		print '<tr><form action="';
+		
+		switch ($row['State'])
+		{
+		case 'Sent':
+		case 'Viewed':
+		case 'Approved':
+			print 'approve.php';
+			break;
+		
+		case 'Ready':
+		case 'Finalized':
+			print 'finalize.php';
+			break;
+		}
+		
+		print '?courseInstanceID=' . $courseInstanceID . '&outcomeID=' . $row['CLONumber'] . '" method="POST">';
+		print '<td>' . $row['CLONumber'] . '</td>';
+		print '<td>' . $row['Description'] . '</td>';
+		print '<td>' . $row['Outcomes'] . '</td>';
+		print '<td>' . $row['Assessed'] . '<br /><input type="text" name="assessed" /></td>';
+		
+		print '<td>' . $row['MeanScore'] . '%';
+		if (($row['State'] == 'Ready') OR ($row['State'] == 'Finalized'))
+		{
+			print '<br /><input type="text" name="mean" />';
+		}
+		print '</td>';
+		
+		if ($row['MedianScore'] == '')
+		{
+			print '<td>N/A';
+		}
+		else
+		{
+			print '<td>' . $row['MedianScore'] . '%';
+		}
+		if (($row['State'] == 'Ready') OR ($row['State'] == 'Finalized'))
+		{
+			print '<br /><input type="text" name="median" />';
+		}
+		print '</td>';
+		
+		print '<td>' . $row['HighScore'] . '%';
+		if (($row['State'] == 'Ready') OR ($row['State'] == 'Finalized'))
+		{
+			print '<br /><input type="text" name="high" />';
+		}
+		print '</td>';
+		
+		print '<td>' . $row['SatisfactoryScore'] . '%<br /><input type="text" name="satisfactory" /></td>';
+		
+		print '<td>' . $row['State'] . '</td>';
+		
+		switch ($row['State'])
+		{
+		case 'Sent':
+		case 'Viewed':
+			print '<td><input type="submit" value="Approve" /></td>';
+			break;
+		
+		case 'Approved':
+		case 'Finalized':
+			print '<td><input type="submit" value="Update" /></td>';
+			break;
+		
+		case 'Ready':
+			print '<td><input type="submit" value="Finalize" /></td>';
+			break;
+		}
+		print '</form></tr>';
+	}
+	
+	mysql_close($con);
+	?>
+	
 	</tbody>
 </table>
 

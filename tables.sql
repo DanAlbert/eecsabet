@@ -67,6 +67,7 @@ CREATE TABLE CourseInstanceCLO
 	MedianScore INT,
 	HighScore INT,
 	SatisfactoryScore INT,
+	State SET ('Sent', 'Viewed', 'Approved', 'Ready', 'Finalized'),
 	PRIMARY KEY (CLOID, CourseInstanceID),
 	FOREIGN KEY (CLOID) REFERENCES CLO (ID),
 	FOREIGN KEY (CourseInstanceID) REFERENCES CourseInstance (ID)

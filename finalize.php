@@ -21,6 +21,9 @@ if (!mysql_select_db($database))
 $courseInstanceID = $_REQUEST['courseInstanceID'];
 $outcomeID = $_REQUEST['outcomeID'];
 $assessed = $_POST['assessed'];
+$mean = $_POST['mean'];
+$median = $_POST['median'];
+$high = $_POST['high'];
 $satisfactory = $_POST['satisfactory'];
 
 if ($assessed == '')
@@ -37,7 +40,7 @@ if ($satisfactory == '')
 	return;
 }
 
-$query = "UPDATE CourseInstanceCLO SET Assessed='$assessed', SatisfactoryScore='$satisfactory', State='Approved' WHERE CLOID='$outcomeID' AND CourseInstanceID='$courseInstanceID';";
+$query = "UPDATE CourseInstanceCLO SET Assessed='$assessed', MeanScore='$mean', MedianScore='$median', HighScore='$high', SatisfactoryScore='$satisfactory', State='Finalized' WHERE CLOID='$outcomeID' AND CourseInstanceID='$courseInstanceID';";
 mysql_query($query, $con);
 if (mysql_errno() == 0)
 {

@@ -6,11 +6,17 @@ index.php:
 	The main page. Used to view and update CLOs objectives.
 
 approve.php:
-	Used to submit changes to CLOs.
+	Used to submit changes to CLO assessment areas and satisfactory scores.
+
+finalize.php:
+	Used to submit changes to all CLO metrics.
 
 style.css:
 	Defines the default style for web pages.
 
 tables.sql:
 	MySQL table design. Not to be included in production web directory.
+
+views.sql:
+	MySQL view design. Not to be included in production web directory.
 
