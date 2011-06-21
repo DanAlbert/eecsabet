@@ -8,8 +8,9 @@ CREATE TABLE Instructor
 CREATE TABLE Course
 (
 	ID INT AUTO_INCREMENT NOT NULL,
-	Dept VARCHAR(4),
-	CourseNumber INT,
+	Dept VARCHAR(4) NOT NULL,
+	CourseNumber INT NOT NULL,
+	CreditHours INT NOT NULL,
 	Description TEXT NOT NULL DEFAULT '',
 	PRIMARY KEY(ID),
 	UNIQUE (Dept, CourseNumber)

@@ -52,7 +52,7 @@ case 3:
 	break;
 }
 
-print '<h1>Editing ABET Details for ' . $row['Dept'] . ' ' . $row['CourseNumber'] . '</h1>';
+print '<h1>Editing ABET Details for ' . $row['Dept'] . ' ' . $row['CourseNumber'] . ' (' . $row['CreditHours'] . ')</h1>';
 print '<h2>' . $term . ' ' . $year . '</h2>';
 print '<h3>' . $row['Name'] . '</h3>';
 print '<p>' . $row['Description'] . '</p>';

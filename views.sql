@@ -2,6 +2,7 @@ CREATE ALGORITHM=UNDEFINED VIEW CourseInstanceInformation AS
 SELECT	CourseInstance.ID AS CourseInstanceID,
 		Course.Dept,
 		Course.CourseNumber,
+		Course.CreditHours,
 		Course.Description,
 		CourseInstance.TermID,
 		Instructor.Name,
