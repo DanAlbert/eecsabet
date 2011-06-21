@@ -33,8 +33,27 @@ $query = "SELECT * FROM CourseInstanceInformation WHERE CourseInstanceID=$course
 $result = mysql_query($query, $con);
 $row = mysql_fetch_array($result);
 
+$termID = $row['TermID'];
+$year = floor($termID / 100);
+$term = '';
+switch ($termID - ($year * 100))
+{
+case 0:
+	$term = 'Summer';
+	break;
+case 1:
+	$term = 'Fall';
+	break;
+case 2:
+	$term = 'Winter';
+	break;
+case 3:
+	$term = 'Spring';
+	break;
+}
+
 print '<h1>Editing ABET Details for ' . $row['Dept'] . ' ' . $row['CourseNumber'] . '</h1>';
-print '<h2>' . $row['Term'] . ' ' . $row['Year'] . '</h2>';
+print '<h2>' . $term . ' ' . $year . '</h2>';
 print '<h3>' . $row['Name'] . '</h3>';
 print '<p>' . $row['Description'] . '</p>';
 
