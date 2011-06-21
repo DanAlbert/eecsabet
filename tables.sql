@@ -25,6 +25,7 @@ CREATE TABLE CourseInstance
 	Term SET('Fall', 'Winter', 'Spring', 'Summer') NOT NULL,
 	Year INT NOT NULL,
 	State SET ('Sent', 'Viewed', 'Approved', 'Ready', 'Finalized'),
+	Comments TEXT NOT NULL DEFAULT '',
 	PRIMARY KEY (ID),
 	UNIQUE (CourseID, Instructor, Term, Year),
 	FOREIGN KEY (CourseID) REFERENCES Course (ID),

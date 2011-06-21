@@ -38,12 +38,12 @@ print '<h2>' . $row['Term'] . ' ' . $row['Year'] . '</h2>';
 print '<h3>' . $row['Name'] . '</h3>';
 
 $state = $row['State'];
+$comments = $row['Comments'];
+
 if ($state == 'Finalized')
 {
 	print '<p>ABET information for this course has already been finalized and may no longer be revised. If you need to fix an error, please contact <a href="mailto:foobar@gmail.com">foobar</a>.<p>';
 }
-
-mysql_close($con);
 
 if (isset($_REQUEST['error']))
 {
@@ -67,10 +67,7 @@ if (isset($_REQUEST['error']))
 	}
 }
 
-?>
-
-<h2>Course Learning Outcomes (CLOs)</h2>
-<?php
+print '<h2>Course Learning Outcomes (CLOs)</h2>';
 
 if ($state != 'Finalized')
 {
@@ -95,49 +92,56 @@ if ($state != 'Finalized')
 	print '?courseInstanceID=' . $courseInstanceID . '" method="POST">';
 }
 
-?>
-
-<table>
-	<thead>
-		<tr>
-			<th>Number</th>
-			<th>Title and Description</th>
-			<th>ABET Outcomes</th>
-			<th>How/Where Assessed*</th>
-			<th>Mean Score</th>
-			<th>Median Score</th>
-			<th>High Score</th>
-			<th>Satisfactory Score**</th>
-		</tr>
-	</thead>
-	<tbody>
+print '<table><thead><tr>';
+print '<th>Number</th>';
+print '<th>Title and Description</th>';
+print '<th>ABET Outcomes</th>';
+print '<th>How/Where Assessed*</th>';
+print '<th>Mean Score</th>';
+print '<th>Median Score</th>';
+print '<th>High Score</th>';
+print '<th>Satisfactory Score**</th>';
+print '</tr></thead><tbody>';
 	
-	<?php
-	
-	$hostname = 'mysql.gingerhq.net';
-	$username = 'eecsabet';
-	$password = 'hP5fRjZbZ6KcL7MU';
-	$database = 'eecsabet';
+$query = "SELECT * FROM CourseInstanceCLOInformation WHERE CourseInstanceID='$courseInstanceID';";
+$result = mysql_query($query, $con);
 
-	$con = mysql_connect($hostname, $username, $password);
-	if (!$con)
+$i = 0;
+while ($row = mysql_fetch_array($result))
+{
+	if (($i % 2) == 1)
 	{
-		mysql_close($con);
-		die('Unable to connect to database: ' . mysql_error());
+		print '<tr class="alt">';
 	}
-
-	if (!mysql_select_db($database))
+	else
 	{
-		mysql_close($con);
-		die('Unable to select database: ' . mysql_error());
+		print '<tr>';
 	}
 	
-	$query = "SELECT * FROM CourseInstanceCLOInformation WHERE CourseInstanceID='$courseInstanceID';";
-	$result = mysql_query($query, $con);
+	print '<td>' . $row['CLONumber'] . '</td>';
+	print '<td>' . $row['Description'] . '</td>';
+	print '<td>' . $row['Outcomes'] . '</td>';
+	print '<td>' . $row['Assessed'] . '</td>';
+	print '<td>' . $row['MeanScore'] . '%</td>';
 	
-	$i = 0;
-	while ($row = mysql_fetch_array($result))
+	if ($row['MedianScore'] == '')
 	{
+		print '<td>N/A';
+	}
+	else
+	{
+		print '<td>' . $row['MedianScore'] . '%';
+	}
+	print '</td>';
+	
+	print '<td>' . $row['HighScore'] . '%</td>';
+	print '<td>' . $row['SatisfactoryScore'] . '%</td>';
+	
+	switch ($state)
+	{
+	case 'Sent':
+	case 'Viewed':
+	case 'Approved':
 		if (($i % 2) == 1)
 		{
 			print '<tr class="alt">';
@@ -146,82 +150,43 @@ if ($state != 'Finalized')
 		{
 			print '<tr>';
 		}
-		
-		print '<td>' . $row['CLONumber'] . '</td>';
-		print '<td>' . $row['Description'] . '</td>';
-		print '<td>' . $row['Outcomes'] . '</td>';
-		print '<td>' . $row['Assessed'] . '</td>';
-		print '<td>' . $row['MeanScore'] . '%</td>';
-		
-		if ($row['MedianScore'] == '')
+		print '<td>&nbsp;</td>';
+		print '<td>Request change</td>';
+		print '<td>&nbsp;</td>';
+		print '<td><input type="text" name="assessed[' . $row['CLONumber'] . ']" /></td>';
+		print '<td>Locked until end of term.</td>';
+		print '<td>Locked until end of term.</td>';
+		print '<td>Locked until end of term.</td>';
+		print '<td><input type="text" name="satisfactory[' . $row['CLONumber'] . ']" /></td>';
+		print '</tr>';
+		break;
+	case 'Ready':
+		if (($i % 2) == 1)
 		{
-			print '<td>N/A';
+			print '<tr class="alt">';
 		}
 		else
 		{
-			print '<td>' . $row['MedianScore'] . '%';
+			print '<tr>';
 		}
-		print '</td>';
-		
-		print '<td>' . $row['HighScore'] . '%</td>';
-		print '<td>' . $row['SatisfactoryScore'] . '%</td>';
-		
-		switch ($state)
-		{
-		case 'Sent':
-		case 'Viewed':
-		case 'Approved':
-			if (($i % 2) == 1)
-			{
-				print '<tr class="alt">';
-			}
-			else
-			{
-				print '<tr>';
-			}
-			print '<td>&nbsp;</td>';
-			print '<td>Request change</td>';
-			print '<td>&nbsp;</td>';
-			print '<td><input type="text" name="assessed[' . $row['CLONumber'] . ']" /></td>';
-			print '<td>Locked until end of term.</td>';
-			print '<td>Locked until end of term.</td>';
-			print '<td>Locked until end of term.</td>';
-			print '<td><input type="text" name="satisfactory[' . $row['CLONumber'] . ']" /></td>';
-			print '</tr>';
-			break;
-		case 'Ready':
-			if (($i % 2) == 1)
-			{
-				print '<tr class="alt">';
-			}
-			else
-			{
-				print '<tr>';
-			}
-			print '<td>&nbsp;</td>';
-			print '<td>Request change</td>';
-			print '<td>&nbsp;</td>';
-			print '<td><input type="text" name="assessed[' . $row['CLONumber'] . ']" /></td>';
-			print '<td><input type="text" name="mean[' . $row['CLONumber'] . ']" /></td>';
-			print '<td><input type="text" name="median[' . $row['CLONumber'] . ']" /></td>';
-			print '<td><input type="text" name="high[' . $row['CLONumber'] . ']" /></td>';
-			print '<td><input type="text" name="satisfactory[' . $row['CLONumber'] . ']" /></td>';
-			print '</tr>';
-			break;
-		case 'Finalized':
-			break;
-		}
-		
-		$i++;
+		print '<td>&nbsp;</td>';
+		print '<td>Request change</td>';
+		print '<td>&nbsp;</td>';
+		print '<td><input type="text" name="assessed[' . $row['CLONumber'] . ']" /></td>';
+		print '<td><input type="text" name="mean[' . $row['CLONumber'] . ']" /></td>';
+		print '<td><input type="text" name="median[' . $row['CLONumber'] . ']" /></td>';
+		print '<td><input type="text" name="high[' . $row['CLONumber'] . ']" /></td>';
+		print '<td><input type="text" name="satisfactory[' . $row['CLONumber'] . ']" /></td>';
+		print '</tr>';
+		break;
+	case 'Finalized':
+		break;
 	}
 	
-	mysql_close($con);
-	?>
+	$i++;
+}
 	
-	</tbody>
-</table>
-
-<?php
+print '</tbody></table>';
 
 switch ($state)
 {
@@ -243,6 +208,32 @@ if ($state != 'Finalized')
 {
 	print '</form>';
 }
+
+print '<h2>Comments</h2>';
+
+if ($state != 'Finalized')
+{
+	print '<form action="comment.php?courseInstanceID=' . $courseInstanceID . '" method="POST">';
+}
+
+print '<textarea name="comments" cols="60" rows="10"';
+if ($state == 'Finalized')
+{
+	print ' disabled="disabled"';
+}
+print '>';
+
+print $comments;
+
+print '</textarea>';
+
+if ($state != 'Finalized')
+{
+	print '<input type="submit" value="Submit Comments" />';
+	print '</form>';
+}
+
+mysql_close($con);
 
 ?>
 

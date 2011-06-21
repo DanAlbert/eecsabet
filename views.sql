@@ -5,7 +5,8 @@ SELECT	CourseInstance.ID AS CourseInstanceID,
 		CourseInstance.Term,
 		CourseInstance.Year,
 		Instructor.Name,
-		CourseInstance.State
+		CourseInstance.State,
+		CourseInstance.Comments
 FROM Course, CourseInstance, Instructor
 WHERE Course.ID = CourseInstance.CourseID
 AND Instructor.Email = CourseInstance.Instructor;
