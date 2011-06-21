@@ -135,25 +135,23 @@ if ($state != 'Finalized')
 	$query = "SELECT * FROM CourseInstanceCLOInformation WHERE CourseInstanceID='$courseInstanceID';";
 	$result = mysql_query($query, $con);
 	
+	$i = 0;
 	while ($row = mysql_fetch_array($result))
 	{
-		print '<tr>';
+		if (($i % 2) == 1)
+		{
+			print '<tr class="alt">';
+		}
+		else
+		{
+			print '<tr>';
+		}
+		
 		print '<td>' . $row['CLONumber'] . '</td>';
 		print '<td>' . $row['Description'] . '</td>';
 		print '<td>' . $row['Outcomes'] . '</td>';
-		print '<td>' . $row['Assessed'];
-		if ($state != 'Finalized')
-		{
-			print '<br /><input type="text" name="assessed[' . $row['CLONumber'] . ']" />';
-		}
-		print '</td>';
-		
-		print '<td>' . $row['MeanScore'] . '%';
-		if ($state == 'Ready')
-		{
-			print '<br /><input type="text" name="mean[' . $row['CLONumber'] . ']" />';
-		}
-		print '</td>';
+		print '<td>' . $row['Assessed'] . '</td>';
+		print '<td>' . $row['MeanScore'] . '%</td>';
 		
 		if ($row['MedianScore'] == '')
 		{
@@ -163,25 +161,58 @@ if ($state != 'Finalized')
 		{
 			print '<td>' . $row['MedianScore'] . '%';
 		}
-		if ($state == 'Ready')
-		{
-			print '<br /><input type="text" name="median[' . $row['CLONumber'] . ']" />';
-		}
 		print '</td>';
 		
-		print '<td>' . $row['HighScore'] . '%';
-		if ($state == 'Ready')
-		{
-			print '<br /><input type="text" name="high[' . $row['CLONumber'] . ']" />';
-		}
-		print '</td>';
+		print '<td>' . $row['HighScore'] . '%</td>';
+		print '<td>' . $row['SatisfactoryScore'] . '%</td>';
 		
-		print '<td>' . $row['SatisfactoryScore'] . '%';
-		if ($state != 'Finalized')
+		switch ($state)
 		{
-			print '<br /><input type="text" name="satisfactory[' . $row['CLONumber'] . ']" />';
+		case 'Sent':
+		case 'Viewed':
+		case 'Approved':
+			if (($i % 2) == 1)
+			{
+				print '<tr class="alt">';
+			}
+			else
+			{
+				print '<tr>';
+			}
+			print '<td>&nbsp;</td>';
+			print '<td>Request change</td>';
+			print '<td>&nbsp;</td>';
+			print '<td><input type="text" name="assessed[' . $row['CLONumber'] . ']" /></td>';
+			print '<td>Locked until end of term.</td>';
+			print '<td>Locked until end of term.</td>';
+			print '<td>Locked until end of term.</td>';
+			print '<td><input type="text" name="satisfactory[' . $row['CLONumber'] . ']" /></td>';
+			print '</tr>';
+			break;
+		case 'Ready':
+			if (($i % 2) == 1)
+			{
+				print '<tr class="alt">';
+			}
+			else
+			{
+				print '<tr>';
+			}
+			print '<td>&nbsp;</td>';
+			print '<td>Request change</td>';
+			print '<td>&nbsp;</td>';
+			print '<td><input type="text" name="assessed[' . $row['CLONumber'] . ']" /></td>';
+			print '<td><input type="text" name="mean[' . $row['CLONumber'] . ']" /></td>';
+			print '<td><input type="text" name="median[' . $row['CLONumber'] . ']" /></td>';
+			print '<td><input type="text" name="high[' . $row['CLONumber'] . ']" /></td>';
+			print '<td><input type="text" name="satisfactory[' . $row['CLONumber'] . ']" /></td>';
+			print '</tr>';
+			break;
+		case 'Finalized':
+			break;
 		}
-		print '</td>';
+		
+		$i++;
 	}
 	
 	mysql_close($con);
