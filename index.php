@@ -18,7 +18,7 @@ $username = 'eecsabet';
 $password = 'hP5fRjZbZ6KcL7MU';
 $database = 'eecsabet';
 
-$courseInstanceID = 1;
+$courseInstanceID = $_REQUEST['courseInstanceID'];
 
 $con = mysql_connect($hostname, $username, $password);
 if (!$con)
