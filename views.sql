@@ -6,7 +6,11 @@ SELECT	CourseInstance.ID AS CourseInstanceID,
 		CourseInstance.Year,
 		Instructor.Name,
 		CourseInstance.State,
-		CourseInstance.Comments
+		CourseInstance.CommentPrep,
+		CourseInstance.CommentPrepActions,
+		CourseInstance.CommentChanges,
+		CourseInstance.CommentCLO,
+		CourseInstance.CommentRecs
 FROM Course, CourseInstance, Instructor
 WHERE Course.ID = CourseInstance.CourseID
 AND Instructor.Email = CourseInstance.Instructor;

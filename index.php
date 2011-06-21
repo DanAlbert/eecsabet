@@ -38,7 +38,11 @@ print '<h2>' . $row['Term'] . ' ' . $row['Year'] . '</h2>';
 print '<h3>' . $row['Name'] . '</h3>';
 
 $state = $row['State'];
-$comments = $row['Comments'];
+$prep = $row['CommentPrep'];
+$prepActions = $row['CommentPrepActions'];
+$changes = $row['CommentChanges'];
+$clo = $row['CommentCLO'];
+$recs = $row['CommentRecs'];
 
 if ($state == 'Finalized')
 {
@@ -216,14 +220,68 @@ if ($state != 'Finalized')
 	print '<form action="comment.php?courseInstanceID=' . $courseInstanceID . '" method="POST">';
 }
 
-print '<textarea name="comments" cols="60" rows="10"';
+// CommentPrep //
+print "<h3>Did the students in this course seem to have the preparation you expected? Describe any problems you observed in their preparation:</h3>";
+print '<textarea name="prep" cols="60" rows="10"';
 if ($state == 'Finalized')
 {
 	print ' disabled="disabled"';
 }
 print '>';
 
-print $comments;
+print $prep;
+
+print '</textarea>';
+
+// CommentPrepActions //
+print "<h3>Actions taken (if any) in response to the students' level of preparation:</h3>";
+print '<textarea name="prepActions" cols="60" rows="10"';
+if ($state == 'Finalized')
+{
+	print ' disabled="disabled"';
+}
+print '>';
+
+print $prepActions;
+
+print '</textarea>';
+
+// CommentChanges //
+print "<h3>What other changes did you make compared with the last time this course was taught?</h3>";
+print '<textarea name="changes" cols="60" rows="10"';
+if ($state == 'Finalized')
+{
+	print ' disabled="disabled"';
+}
+print '>';
+
+print $changes;
+
+print '</textarea>';
+
+// CommentCLO //
+print "<h3>Are there any other changes you recommend for the way that the CLOs are covered and/or assessed?</h3>";
+print '<textarea name="clo" cols="60" rows="10"';
+if ($state == 'Finalized')
+{
+	print ' disabled="disabled"';
+}
+print '>';
+
+print $clo;
+
+print '</textarea>';
+
+// CommentRecs //
+print "<h3>Do you recommend any other changes for this course?</h3>";
+print '<textarea name="recs" cols="60" rows="10"';
+if ($state == 'Finalized')
+{
+	print ' disabled="disabled"';
+}
+print '>';
+
+print $recs;
 
 print '</textarea>';
 

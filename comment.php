@@ -21,7 +21,19 @@ if (!mysql_select_db($database))
 $courseInstanceID = mysql_real_escape_string($_REQUEST['courseInstanceID']);
 $comments = mysql_real_escape_string($_POST['comments']);
 
-$query = "UPDATE CourseInstance SET Comments='$comments' WHERE ID='$courseInstanceID';";
+$prep = mysql_real_escape_string($_POST['prep']);
+$prepActions = mysql_real_escape_string($_POST['prepActions']);
+$changes = mysql_real_escape_string($_POST['changes']);
+$clo = mysql_real_escape_string($_POST['clo']);
+$recs = mysql_real_escape_string($_POST['recs']);
+
+$query =	"UPDATE CourseInstance SET " .
+			"CommentPrep='$prep', " .
+			"CommentPrepActions='$prepActions', " .
+			"CommentChanges='$changes', " .
+			"CommentCLO='$clo', " .
+			"CommentRecs='$recs' " .
+			"WHERE ID='$courseInstanceID';";
 mysql_query($query, $con);
 if (mysql_errno() != 0)
 {
