@@ -18,8 +18,8 @@ if (!mysql_select_db($database))
 	die('Unable to select database: ' . mysql_error());
 }
 
-$courseInstanceID = $_REQUEST['courseInstanceID'];
-$comments = $_POST['comments'];
+$courseInstanceID = mysql_real_escape_string($_REQUEST['courseInstanceID']);
+$comments = mysql_real_escape_string($_POST['comments']);
 
 $query = "UPDATE CourseInstance SET Comments='$comments' WHERE ID='$courseInstanceID';";
 mysql_query($query, $con);
