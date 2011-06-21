@@ -18,9 +18,9 @@ if (!mysql_select_db($database))
 	die('Unable to select database: ' . mysql_error());
 }
 
-$courseInstanceID = $_REQUEST['courseInstanceID'];
-$assessed = $_POST['assessed'];
-$satisfactory = $_POST['satisfactory'];
+$courseInstanceID = mysql_real_escape_string($_REQUEST['courseInstanceID']);
+$assessed = mysql_real_escape_string($_POST['assessed']);
+$satisfactory = mysql_real_escape_string($_POST['satisfactory']);
 
 mysql_query('BEGIN TRANSACTION;', $con);
 for ($i = 1; $i <= sizeof($assessed); $i++)
