@@ -23,3 +23,9 @@ tables.sql:
 views.sql:
 	MySQL view design. Not to be included in production web directory.
 
+tools/course-instance/index.php:
+	Form for creating a new CourseInstance.
+
+tools/course-instance/create.php:
+	Creates a new CourseInstance.
+

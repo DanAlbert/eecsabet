@@ -33,3 +33,25 @@ textarea
 {
 	display: block;
 }
+
+label
+{
+	display: block;
+}
+
+select+label
+{
+	margin-top: 10px;
+}
+
+input
+{
+	display: block;
+	margin-top: 10px;
+}
+
+td input
+{
+	display: inline;
+	margin-top: 0px;
+}

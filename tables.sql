@@ -18,7 +18,6 @@ CREATE TABLE Course
 
 -- If multiple instructors for same term, do we need a separate instance?
 -- Will the different sections have different metrics?
--- TODO: Needs Comments and State
 CREATE TABLE CourseInstance
 (
 	ID INT AUTO_INCREMENT NOT NULL,
@@ -32,7 +31,7 @@ CREATE TABLE CourseInstance
 	CommentCLO TEXT NOT NULL DEFAULT '',
 	CommentRecs TEXT NOT NULL DEFAULT '',
 	PRIMARY KEY (ID),
-	UNIQUE (CourseID, Instructor, Term, Year),
+	UNIQUE (CourseID, Instructor, TermID),
 	FOREIGN KEY (CourseID) REFERENCES Course (ID),
 	FOREIGN KEY (Instructor) REFERENCES Instructor (Email)
 ) ENGINE=InnoDB;
