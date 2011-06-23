@@ -24,6 +24,16 @@ table, th, td
 	border: 1px solid black;
 }
 
+p
+{
+	margin: 10px 0px;
+}
+
+h1+p, h2+p, h3+p, h4+p, h5+p, h6+p
+{
+	margin-top: 0px;
+}
+
 th, td
 {
 	padding: 4px;
@@ -64,6 +74,16 @@ input
 label+input, label+textarea, label+select
 {
 	margin-top: 2px;
+}
+
+input[type="checkbox"]
+{
+	display: inline;
+}
+
+input[type="checkbox"]+label
+{
+	display: inline;
 }
 
 td input

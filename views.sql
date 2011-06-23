@@ -43,3 +43,13 @@ FROM CourseInstance, CourseInstanceCLO, CLO, CLOOutcomes
 WHERE CourseInstance.CourseID=CLO.CourseID AND CourseInstance.ID=CourseInstanceCLO.CourseInstanceID AND CourseInstanceCLO.CLOID=CLO.ID AND CLOOutcomes.CLOID=CLO.ID
 GROUP BY CourseInstance.ID, CLOOutcomes.CLOID
 ORDER BY CourseInstance.ID, CLO.CLONumber;
+
+CREATE ALGORITHM=UNDEFINED VIEW PrerequisiteInformation AS
+SELECT	Prerequisites.CourseID,
+		Prerequisites.PrerequisiteID,
+		Prerequisites.IsCorequisite,
+		Course.Dept,
+		Course.CourseNumber
+FROM Prerequisites, Course
+WHERE Course.ID=Prerequisites.PrerequisiteID
+ORDER BY Course.Dept ASC, Course.CourseNumber ASC;

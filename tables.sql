@@ -77,3 +77,13 @@ CREATE TABLE CourseInstanceCLO
 	FOREIGN KEY (CLOID) REFERENCES CLO (ID),
 	FOREIGN KEY (CourseInstanceID) REFERENCES CourseInstance (ID)
 ) ENGINE=InnoDB;
+
+CREATE TABLE Prerequisites
+(
+	CourseID INT NOT NULL,
+	PrerequisiteID INT NOT NULL,
+	IsCorequisite BOOL NOT NULL DEFAULT 0,
+	PRIMARY KEY (CourseID, PrerequisiteID),
+	FOREIGN KEY (CourseID) REFERENCES Course (ID),
+	FOREIGN KEY (PrerequisiteID) REFERENCES Course (ID)
+) ENGINE=InnoDB;

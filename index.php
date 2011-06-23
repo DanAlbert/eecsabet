@@ -7,7 +7,17 @@
 </head>
 <body>
 
+<a href="tools/index.php">Administrative Tools</a>
+<br />
 <?php
+
+if (!isset($_REQUEST['courseInstanceID']))
+{
+	print '<p>No course instance ID provided. Please use the link provided to you by email to access this page.</p>';
+	print '<h2><Resend Email</h2>';
+	print '<form action="resend.php" method="POST"><label for="email">Email</label><input id="email" type="text" name="email" /><input type="submit" value="Resend Email" /></form>';
+	return;
+}
 
 require_once 'db.php';
 
@@ -16,6 +26,8 @@ if (!con)
 {
 	die('Unable to connect to database: ' . mysql_error());
 }
+
+$courseInstanceID = mysql_real_escape_string($_REQUEST['courseInstanceID']);
 
 $query = "SELECT * FROM CourseInstanceInformation WHERE CourseInstanceID=$courseInstanceID;";
 $result = mysql_query($query, $con);
@@ -43,6 +55,7 @@ case 3:
 print '<h1>Editing ABET Details for ' . $row['Dept'] . ' ' . $row['CourseNumber'] . ' (' . $row['CreditHours'] . ')</h1>';
 print '<h2>' . $term . ' ' . $year . '</h2>';
 print '<h3>' . $row['Name'] . '</h3>';
+print '<h3>Catalog Description</h3>';
 print '<p>' . $row['Description'] . '</p>';
 
 $state = $row['State'];
@@ -51,6 +64,36 @@ $prepActions = $row['CommentPrepActions'];
 $changes = $row['CommentChanges'];
 $clo = $row['CommentCLO'];
 $recs = $row['CommentRecs'];
+
+$query = "SELECT Dept, CourseNumber, IsCorequisite FROM PrerequisiteInformation, CourseInstance WHERE PrerequisiteInformation.CourseID=CourseInstance.CourseID AND CourseInstance.ID='$courseInstanceID' ORDER BY IsCorequisite ASC;";
+$result = mysql_query($query, $con);
+if (mysql_num_rows($result) != 0)
+{
+	$first = true;
+	$prevCoreq = false;
+	while ($row = mysql_fetch_array($result))
+	{
+		if ($first AND ($row['IsCorequisite'] == 0))
+		{
+			print '<h3>Prerequisites</h3><ul>';
+		}
+		
+		if (!$prevCoreq AND ($row['IsCorequisite'] == 1))
+		{
+			if (!$first)
+			{
+				print '</ul>';
+			}
+			
+			print '<h3>Corequisites</h3><ul>';
+		}
+		
+		print '<li>' . $row['Dept'] . ' ' . $row['CourseNumber'] . '</li>';
+		$first = false;
+	}
+	
+	print '</ul>';
+}
 
 if ($state == 'Finalized')
 {

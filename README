@@ -17,6 +17,9 @@ db.php:
 finalize.php:
 	Used to submit changes to all CLO metrics.
 
+resend.php:
+	Resends links to staff members.
+
 style.css:
 	Defines the default style for web pages.
 
@@ -25,6 +28,9 @@ tables.sql:
 
 views.sql:
 	MySQL view design. Not to be included in production web directory.
+
+tools/index.php:
+	Allows a user to access tools pages and select a course for use with the CLO and prerequisite tools.
 
 tools/clo/index.php:
 	Forms for adding new CLOs to a course, reordering existing CLOs for a course, and removing CLOs from a course.
@@ -55,3 +61,12 @@ tools/instructor/index.php:
 
 tools/instructor/create.php:
 	Creates a new Instructor.
+
+tools/prerequisite/index.php:
+	Form for adding and removing prerequisite courses.
+
+tools/prerequisite/create.php:
+	Adds a prerequiste course.
+
+tools/prerequisite/remove.php:
+	Removes a prerequisite course.
