@@ -9,6 +9,16 @@ body
 	padding: 10px;
 }
 
+h1, h2, h3, h4, h5, h6
+{
+	margin-top: 10px;
+}
+
+p.error
+{
+	color: #ff0000;
+}
+
 table, th, td
 {
 	border: 1px solid black;
@@ -19,7 +29,7 @@ th, td
 	padding: 4px;
 }
 
-input[type="submit"]
+input[type="submit"], button
 {
 	padding: 5px;
 }
@@ -37,6 +47,7 @@ textarea
 label
 {
 	display: block;
+	margin-top: 10px;
 }
 
 select+label
@@ -48,6 +59,11 @@ input
 {
 	display: block;
 	margin-top: 10px;
+}
+
+label+input, label+textarea, label+select
+{
+	margin-top: 2px;
 }
 
 td input

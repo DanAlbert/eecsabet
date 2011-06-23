@@ -16,6 +16,18 @@ FROM Course, CourseInstance, Instructor
 WHERE Course.ID = CourseInstance.CourseID
 AND Instructor.Email = CourseInstance.Instructor;
 
+CREATE ALGORITHM=UNDEFINED VIEW CourseCLOInformation AS
+SELECT	MasterCLO.CourseID AS CourseID,
+		MasterCLO.CLOID AS CLOID,
+		CLO.CLONumber,
+		CLO.Title,
+		CLO.Description,
+		GROUP_CONCAT(DISTINCT CLOOutcomes.ABETOutcome ORDER BY CLOOutcomes.ABETOutcome ASC SEPARATOR ', ') AS Outcomes
+FROM MasterCLO, CLO, CLOOutcomes
+WHERE MasterCLO.CourseID=CLO.CourseID AND MasterCLO.CLOID=CLO.ID AND CLOOutcomes.CLOID=CLO.ID
+GROUP BY MasterCLO.CourseID, CLOOutcomes.CLOID
+ORDER BY MasterCLO.CourseID, CLO.CLONumber;
+
 CREATE ALGORITHM=UNDEFINED VIEW CourseInstanceCLOInformation AS
 SELECT	CourseInstance.ID AS CourseInstanceID,
 		CLO.CLONumber,

@@ -23,9 +23,32 @@ tables.sql:
 views.sql:
 	MySQL view design. Not to be included in production web directory.
 
+tools/clo/index.php:
+	Forms for adding new CLOs to a course, reordering existing CLOs for a course, and removing CLOs from a course.
+
+tools/clo/create.php:
+	Creates a new CLO and adds it to MasterCLO for the course.
+
+tools/clo/remove.php:
+	Removes a CLO from a course.
+
+tools/clo/reorder.php:
+	Changes the ordering of CLOs within a course without altering past CourseInstances.
+
+tools/course/index.php:
+	Form for creating a new Course.
+
+tools/course/create.php:
+	Creates a new Course.
+
 tools/course-instance/index.php:
 	Form for creating a new CourseInstance.
 
 tools/course-instance/create.php:
 	Creates a new CourseInstance.
 
+tools/instructor/index.php:
+	Form for creating a new instructor.
+
+tools/instructor/create.php:
+	Creates a new Instructor.
