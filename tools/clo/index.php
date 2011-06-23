@@ -61,22 +61,12 @@
 <h2>Remove CLOs</h2>
 <?php
 
-$hostname = 'mysql.gingerhq.net';
-$username = 'eecsabet';
-$password = 'hP5fRjZbZ6KcL7MU';
-$database = 'eecsabet';
+require_once '../../db.php';
 
-$con = mysql_connect($hostname, $username, $password);
-if (!$con)
+$con = dbConnect();
+if (!con)
 {
-	mysql_close($con);
 	die('Unable to connect to database: ' . mysql_error());
-}
-
-if (!mysql_select_db($database))
-{
-	mysql_close($con);
-	die('Unable to select database: ' . mysql_error());
 }
 
 $courseID = mysql_real_escape_string($_REQUEST['courseID']);
@@ -103,22 +93,12 @@ if (isset($_REQUEST['error']) AND ($_REQUEST['error'] == 2))
 		<tbody>
 			<?php
 			
-			$hostname = 'mysql.gingerhq.net';
-			$username = 'eecsabet';
-			$password = 'hP5fRjZbZ6KcL7MU';
-			$database = 'eecsabet';
-
-			$con = mysql_connect($hostname, $username, $password);
-			if (!$con)
+			require_once '../../db.php';
+			
+			$con = dbConnect();
+			if (!con)
 			{
-				mysql_close($con);
 				die('Unable to connect to database: ' . mysql_error());
-			}
-
-			if (!mysql_select_db($database))
-			{
-				mysql_close($con);
-				die('Unable to select database: ' . mysql_error());
 			}
 			
 			$query = "SELECT * FROM CourseCLOInformation WHERE CourseID='$courseID';";
@@ -166,22 +146,12 @@ if (isset($_REQUEST['error']) AND ($_REQUEST['error'] == 3))
 		<tbody>
 			<?php
 			
-			$hostname = 'mysql.gingerhq.net';
-			$username = 'eecsabet';
-			$password = 'hP5fRjZbZ6KcL7MU';
-			$database = 'eecsabet';
-
-			$con = mysql_connect($hostname, $username, $password);
-			if (!$con)
+			require_once '../../db.php';
+			
+			$con = dbConnect();
+			if (!con)
 			{
-				mysql_close($con);
 				die('Unable to connect to database: ' . mysql_error());
-			}
-
-			if (!mysql_select_db($database))
-			{
-				mysql_close($con);
-				die('Unable to select database: ' . mysql_error());
 			}
 			
 			$query = "SELECT * FROM CourseCLOInformation WHERE CourseID='$courseID';";

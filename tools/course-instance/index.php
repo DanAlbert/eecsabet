@@ -10,22 +10,12 @@
 	
 	<?php
 	
-	$hostname = 'mysql.gingerhq.net';
-	$username = 'eecsabet';
-	$password = 'hP5fRjZbZ6KcL7MU';
-	$database = 'eecsabet';
-
-	$con = mysql_connect($hostname, $username, $password);
-	if (!$con)
+	require_once '../../db.php';
+	
+	$con = dbConnect();
+	if (!con)
 	{
-		mysql_close($con);
 		die('Unable to connect to database: ' . mysql_error());
-	}
-
-	if (!mysql_select_db($database))
-	{
-		mysql_close($con);
-		die('Unable to select database: ' . mysql_error());
 	}
 	
 	print '<label for="course">Course</label>';

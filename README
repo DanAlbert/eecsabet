@@ -11,6 +11,9 @@ approve.php:
 comment.php:
 	Used to submit comments regarding courses.
 
+db.php:
+	Contains MySQL database utilities.
+
 finalize.php:
 	Used to submit changes to all CLO metrics.
 
