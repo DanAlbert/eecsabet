@@ -69,6 +69,8 @@ if (!con)
 
 $courseID = mysql_real_escape_string($_REQUEST['courseID']);
 
+print '<a href="../index.php?courseID=' . $courseID . '">Return to Adminstration Page</a>';
+
 $query = "SELECT * FROM CourseInformation WHERE CourseID='$courseID';";
 $result = mysql_query($query, $con);
 $row = mysql_fetch_array($result);

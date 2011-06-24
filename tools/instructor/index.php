@@ -6,6 +6,7 @@
 </head>
 <body>
 
+<a href="../index.php">Return to Adminstration Page</a>
 <form action="create.php" method="POST">
 	<label for="name">Name</label>
 	<input id="name" type="text" name="name" />

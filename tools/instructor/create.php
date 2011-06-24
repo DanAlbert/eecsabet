@@ -25,6 +25,6 @@ if (mysql_query($query, $con) === false)
 
 mysql_close($con);
 
-header('Location: ../../index.php');
+header('Location: ../index.php');
 
 ?>

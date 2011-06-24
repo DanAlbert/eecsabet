@@ -24,7 +24,7 @@ CREATE TABLE CourseInstance
 	CourseID INT NOT NULL,
 	Instructor VARCHAR(255) NOT NULL,
 	TermID INT(6) NOT NULL,
-	State SET ('Sent', 'Viewed', 'Approved', 'Ready', 'Finalized'),
+	State SET ('Sent', 'Viewed', 'Approved', 'Ready', 'Finalized') NOT NULL DEFAULT 'Sent',
 	CommentPrep TEXT NOT NULL DEFAULT '',
 	CommentPrepActions TEXT NOT NULL DEFAULT '',
 	CommentChanges TEXT NOT NULL DEFAULT '',

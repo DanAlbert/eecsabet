@@ -176,8 +176,26 @@ while ($row = mysql_fetch_array($result))
 	print '<td>' . $row['CLONumber'] . '</td>';
 	print '<td>' . $row['Description'] . '</td>';
 	print '<td>' . $row['Outcomes'] . '</td>';
-	print '<td>' . $row['Assessed'] . '</td>';
-	print '<td>' . $row['MeanScore'] . '%</td>';
+	
+	if ($row['Assessed'] == '')
+	{
+		print '<td>N/A';
+	}
+	else
+	{
+		print '<td>' . $row['Assessed'];
+	}
+	print '</td>';
+	
+	if ($row['MeanScore'] == '')
+	{
+		print '<td>N/A';
+	}
+	else
+	{
+		print '<td>' . $row['MeanScore'] . '%';
+	}
+	print '</td>';
 	
 	if ($row['MedianScore'] == '')
 	{
@@ -189,8 +207,25 @@ while ($row = mysql_fetch_array($result))
 	}
 	print '</td>';
 	
-	print '<td>' . $row['HighScore'] . '%</td>';
-	print '<td>' . $row['SatisfactoryScore'] . '%</td>';
+	if ($row['HighScore'] == '')
+	{
+		print '<td>N/A';
+	}
+	else
+	{
+		print '<td>' . $row['HighScore'] . '%';
+	}
+	print '</td>';
+	
+	if ($row['SatisfactoryScore'] == '')
+	{
+		print '<td>N/A';
+	}
+	else
+	{
+		print '<td>' . $row['SatisfactoryScore'] . '%';
+	}
+	print '</td>';
 	
 	switch ($state)
 	{

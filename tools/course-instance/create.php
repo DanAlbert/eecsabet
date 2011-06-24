@@ -64,6 +64,6 @@ mysql_query('COMMIT;', $con);
 
 mysql_close($con);
 
-header('Location: ../../index.php?courseInstanceID=' . $courseInstance);
+header('Location: ../index.php?courseID=' . $course);
 
 ?>

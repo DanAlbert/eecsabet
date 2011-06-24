@@ -2,15 +2,15 @@
 
 function dbConnect()
 {
-	$hostname = 'mysql.gingerhq.net';
+	/*$hostname = 'mysql.gingerhq.net';
 	$username = 'eecsabet';
 	$password = 'hP5fRjZbZ6KcL7MU';
-	$database = 'eecsabet';
+	$database = 'eecsabet';*/
 	
-	/*$hostname = 'engr-db.engr.oregonstate.edu:3307';
+	$hostname = 'engr-db.engr.oregonstate.edu:3307';
 	$username = 'eecsabet';
 	$password = 'OPtbHauT';
-	$database = 'eecsabet';*/
+	$database = 'eecsabet';
 
 	$con = mysql_connect($hostname, $username, $password);
 	if (!$con)

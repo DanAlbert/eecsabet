@@ -42,7 +42,14 @@ else
 		{
 			print '<br />';
 		}
-		print '<a href="index.php?courseID=' . $row['ID'] . '">' . $row['Dept'] . ' ' . $row['CourseNumber'] . '</a>';
+		if (isset($_REQUEST['courseID']) AND ($row['ID'] == $_REQUEST['courseID']))
+		{
+			print $row['Dept'] . ' ' . $row['CourseNumber'];
+		}
+		else
+		{
+			print '<a href="index.php?courseID=' . $row['ID'] . '">' . $row['Dept'] . ' ' . $row['CourseNumber'] . '</a>';
+		}
 		$first = false;
 	}
 }
