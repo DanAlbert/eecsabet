@@ -54,22 +54,6 @@ FROM Prerequisites, Course
 WHERE Course.ID=Prerequisites.PrerequisiteID
 ORDER BY Course.Dept ASC, Course.CourseNumber ASC;
 
-/*CREATE ALGORITHM=UNDEFINED VIEW CourseInformation AS
-SELECT	C1.ID AS CourseID,
-		C1.Dept,
-		C1.CourseNumber,
-		C1.CreditHours,
-		TermsOffered.Summer,
-		TermsOffered.Fall,
-		TermsOffered.Winter,
-		TermsOffered.Spring,
-		GROUP_CONCAT(DISTINCT CONCAT(C2.Dept, ' ', C2.CourseNumber) ORDER BY C2.Dept, C2.CourseNumber SEPARATOR ', ') AS Prerequisites,
-		GROUP_CONCAT(DISTINCT CONCAT(C3.Dept, ' ', C3.CourseNumber) ORDER BY C3.Dept, C3.CourseNumber SEPARATOR ', ') AS Corequisites
-FROM Course AS C1, Course AS C2, Course AS C3, Prerequisites AS P1, Prerequisites AS P2, TermsOffered
-WHERE TermsOffered.CourseID=C1.ID AND P1.CourseID=C1.ID AND P2.CourseID=C1.ID AND (P1.PrerequisiteID=C2.ID AND P1.IsCorequisite='0') AND (P2.PrerequisiteID=C3.ID AND P2.IsCorequisite='1')
-GROUP BY C1.ID
-ORDER BY C1.Dept ASC, C1.CourseNumber ASC;*/
-
 CREATE ALGORITHM=UNDEFINED VIEW CourseInformation AS
 SELECT	C1.ID AS CourseID,
 		C1.Dept,
