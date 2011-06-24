@@ -26,6 +26,12 @@ $fall = $row['Fall'];
 $winter = $row['Winter'];
 $spring = $row['Spring'];
 
+$query = "SELECT * FROM CourseInformation WHERE CourseID='$courseID';";
+$result = mysql_query($query, $con);
+$row = mysql_fetch_array($result);
+
+print '<h1>Editing Terms that ' . $row['Dept'] . ' ' . $row['CourseNumber'] . ' is Offered</h1>';
+
 mysql_close($con);
 
 ?>

@@ -17,6 +17,12 @@ if (!con)
 
 $courseID = mysql_real_escape_string($_REQUEST['courseID']);
 
+$query = "SELECT * FROM CourseInformation WHERE CourseID='$courseID';";
+$result = mysql_query($query, $con);
+$row = mysql_fetch_array($result);
+
+print '<h1>Editing Prerequisites for ' . $row['Dept'] . ' ' . $row['CourseNumber'] . '</h1>';
+
 ?>
 <h2>Remove Prerequisites</h2>
 <form action="remove.php?courseID=<?php echo $courseID; ?>" method="POST">
@@ -78,7 +84,7 @@ if (isset($_REQUEST['error']) AND ($_REQUEST['error'] == 1))
 	<input id="isCorequisite" type="checkbox" name="isCorequisite" />
 	<label for="isCorequisite">Is Corequisite</label>
 	
-	<input type="submit" value="Create New CLO" />
+	<input type="submit" value="Create New Prerequisite" />
 </form>
 
 </body>

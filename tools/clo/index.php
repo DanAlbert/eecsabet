@@ -57,8 +57,6 @@
 	</script>
 </head>
 <body>
-
-<h2>Remove CLOs</h2>
 <?php
 
 require_once '../../db.php';
@@ -71,7 +69,15 @@ if (!con)
 
 $courseID = mysql_real_escape_string($_REQUEST['courseID']);
 
-mysql_close($con);
+$query = "SELECT * FROM CourseInformation WHERE CourseID='$courseID';";
+$result = mysql_query($query, $con);
+$row = mysql_fetch_array($result);
+
+print '<h1>Editing CLOs for ' . $row['Dept'] . ' ' . $row['CourseNumber'] . '</h1>';
+
+?>
+<h2>Remove CLOs</h2>
+<?php
 
 if (isset($_REQUEST['error']) AND ($_REQUEST['error'] == 2))
 {
@@ -93,14 +99,6 @@ if (isset($_REQUEST['error']) AND ($_REQUEST['error'] == 2))
 		<tbody>
 			<?php
 			
-			require_once '../../db.php';
-			
-			$con = dbConnect();
-			if (!con)
-			{
-				die('Unable to connect to database: ' . mysql_error());
-			}
-			
 			$query = "SELECT * FROM CourseCLOInformation WHERE CourseID='$courseID';";
 			$result = mysql_query($query, $con);
 			
@@ -115,8 +113,6 @@ if (isset($_REQUEST['error']) AND ($_REQUEST['error'] == 2))
 				print '<td>' . $row['Outcomes'] . '</td>';
 				print '</tr>';
 			}
-			
-			mysql_close($con);
 			
 			?>
 		</tbody>
@@ -145,14 +141,6 @@ if (isset($_REQUEST['error']) AND ($_REQUEST['error'] == 3))
 		</thead>
 		<tbody>
 			<?php
-			
-			require_once '../../db.php';
-			
-			$con = dbConnect();
-			if (!con)
-			{
-				die('Unable to connect to database: ' . mysql_error());
-			}
 			
 			$query = "SELECT * FROM CourseCLOInformation WHERE CourseID='$courseID';";
 			$result = mysql_query($query, $con);
