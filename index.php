@@ -105,7 +105,7 @@ if (isset($_REQUEST['error']))
 	switch ($_REQUEST['error'])
 	{
 	case 0:
-		print 'CLO Updated Successfully.';
+		print 'CLOs updated successfully.';
 		break;
 		
 	case 3:
@@ -138,6 +138,14 @@ if (isset($_REQUEST['error']))
 		
 	case 10:
 		print 'You must provide the satisfactory score before finalizing.';
+		break;
+		
+	case 11:
+		print 'Comments updated successfully.';
+		break;
+		
+	case 12:
+		print 'CLOs and comments updated successfully.';
 		break;
 	}
 }
@@ -282,11 +290,11 @@ while ($row = mysql_fetch_array($result))
 		print '<td>&nbsp;</td>';
 		print '<td>Request change</td>';
 		print '<td>&nbsp;</td>';
-		print '<td><input type="text" name="assessed[' . $row['CLONumber'] . ']" /></td>';
-		print '<td><input type="text" name="mean[' . $row['CLONumber'] . ']" /></td>';
-		print '<td><input type="text" name="median[' . $row['CLONumber'] . ']" /></td>';
-		print '<td><input type="text" name="high[' . $row['CLONumber'] . ']" /></td>';
-		print '<td><input type="text" name="satisfactory[' . $row['CLONumber'] . ']" /></td>';
+		print '<td><input type="text" name="assessed[' . $row['CLOID'] . ']" /></td>';
+		print '<td><input type="text" name="mean[' . $row['CLOID'] . ']" /></td>';
+		print '<td><input type="text" name="median[' . $row['CLOID'] . ']" /></td>';
+		print '<td><input type="text" name="high[' . $row['CLOID'] . ']" /></td>';
+		print '<td><input type="text" name="satisfactory[' . $row['CLOID'] . ']" /></td>';
 		print '</tr>';
 		break;
 	case 'Finalized':
@@ -298,33 +306,7 @@ while ($row = mysql_fetch_array($result))
 	
 print '</tbody></table>';
 
-switch ($state)
-{
-case 'Sent':
-case 'Viewed':
-	print '<input type="submit" value="Approve" />';
-	break;
-
-case 'Approved':
-	print '<input type="submit" value="Update" />';
-	break;
-
-case 'Ready':
-	print '<input type="submit" value="Finalize" />';
-	break;
-}
-
-if ($state != 'Finalized')
-{
-	print '</form>';
-}
-
 print '<h2>Comments</h2>';
-
-if ($state != 'Finalized')
-{
-	print '<form action="comment.php?courseInstanceID=' . $courseInstanceID . '" method="POST">';
-}
 
 // CommentPrep //
 print "<h3>Did the students in this course seem to have the preparation you expected? Describe any problems you observed in their preparation:</h3>";
@@ -391,9 +373,24 @@ print $recs;
 
 print '</textarea>';
 
+switch ($state)
+{
+case 'Sent':
+case 'Viewed':
+	print '<input type="submit" value="Approve" />';
+	break;
+
+case 'Approved':
+	print '<input type="submit" value="Update" />';
+	break;
+
+case 'Ready':
+	print '<input type="submit" value="Finalize" />';
+	break;
+}
+
 if ($state != 'Finalized')
 {
-	print '<input type="submit" value="Submit Comments" />';
 	print '</form>';
 }
 

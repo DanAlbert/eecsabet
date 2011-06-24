@@ -9,20 +9,49 @@ if (!con)
 }
 
 $courseInstanceID = mysql_real_escape_string($_REQUEST['courseInstanceID']);
-$assessed = mysql_real_escape_string($_POST['assessed']);
-$mean = mysql_real_escape_string($_POST['mean']);
-$median = mysql_real_escape_string($_POST['median']);
-$high = mysql_real_escape_string($_POST['high']);
-$satisfactory = mysql_real_escape_string($_POST['satisfactory']);
+$assessed = $_POST['assessed'];
+$mean = $_POST['mean'];
+$median = $_POST['median'];
+$high = $_POST['high'];
+$satisfactory = $_POST['satisfactory'];
+
+$prep = mysql_real_escape_string($_POST['prep']);
+$prepActions = mysql_real_escape_string($_POST['prepActions']);
+$changes = mysql_real_escape_string($_POST['changes']);
+$clo = mysql_real_escape_string($_POST['clo']);
+$recs = mysql_real_escape_string($_POST['recs']);
+
+if (sizeof($assessed) == 0)
+{
+	onError($courseInstanceID, 3);
+	return;
+}
 
 mysql_query('BEGIN TRANSACTION;', $con);
-while ($current = current($assessed))
+
+$size = sizeof($assessed);
+$current = null;
+for ($i = 0; $i < $size; $i++)
 {
-	if ($assessed[key($assessed)] == '')
+	$current = current($assessed);
+	if (($assessed[key($assessed)] == '') OR ($assessed[key($assessed)] == null))
 	{
 		mysql_query('ROLLBACK;', $con);
 		mysql_close($con);
-		header('Location: index.php?courseInstanceID=' . $courseInstanceID . '&error=6');
+		switch (submitComments($courseInstanceID, $prep, $prepActions, $changes, $clo, $recs))
+		{
+		case 0:
+			onError($courseInstanceID, 11);
+			break;
+			
+		case 1:
+			onError($courseInstanceID, 6);
+			break;
+			
+		case 2:
+			onError($courseInstanceID, 5);
+			break;
+		}
 		return;
 	}
 
@@ -30,7 +59,20 @@ while ($current = current($assessed))
 	{
 		mysql_query('ROLLBACK;', $con);
 		mysql_close($con);
-		header('Location: index.php?courseInstanceID=' . $courseInstanceID . '&error=7');
+		switch (submitComments($courseInstanceID, $prep, $prepActions, $changes, $clo, $recs))
+		{
+		case 0:
+			onError($courseInstanceID, 11);
+			break;
+			
+		case 1:
+			onError($courseInstanceID, 7);
+			break;
+			
+		case 2:
+			onError($courseInstanceID, 5);
+			break;
+		}
 		return;
 	}
 
@@ -38,7 +80,20 @@ while ($current = current($assessed))
 	{
 		mysql_query('ROLLBACK;', $con);
 		mysql_close($con);
-		header('Location: index.php?courseInstanceID=' . $courseInstanceID . '&error=8');
+		switch (submitComments($courseInstanceID, $prep, $prepActions, $changes, $clo, $recs))
+		{
+		case 0:
+			onError($courseInstanceID, 11);
+			break;
+			
+		case 1:
+			onError($courseInstanceID, 8);
+			break;
+			
+		case 2:
+			onError($courseInstanceID, 5);
+			break;
+		}
 		return;
 	}
 
@@ -46,7 +101,20 @@ while ($current = current($assessed))
 	{
 		mysql_query('ROLLBACK;', $con);
 		mysql_close($con);
-		header('Location: index.php?courseInstanceID=' . $courseInstanceID . '&error=9');
+		switch (submitComments($courseInstanceID, $prep, $prepActions, $changes, $clo, $recs))
+		{
+		case 0:
+			onError($courseInstanceID, 11);
+			break;
+			
+		case 1:
+			onError($courseInstanceID, 9);
+			break;
+			
+		case 2:
+			onError($courseInstanceID, 5);
+			break;
+		}
 		return;
 	}
 
@@ -54,7 +122,20 @@ while ($current = current($assessed))
 	{
 		mysql_query('ROLLBACK;', $con);
 		mysql_close($con);
-		header('Location: index.php?courseInstanceID=' . $courseInstanceID . '&error=10');
+		switch (submitComments($courseInstanceID, $prep, $prepActions, $changes, $clo, $recs))
+		{
+		case 0:
+			onError($courseInstanceID, 11);
+			break;
+			
+		case 1:
+			onError($courseInstanceID, 10);
+			break;
+			
+		case 2:
+			onError($courseInstanceID, 5);
+			break;
+		}
 		return;
 	}
 	
@@ -69,9 +150,12 @@ while ($current = current($assessed))
 	if (mysql_errno() != 0)
 	{
 		mysql_query('ROLLBACK;', $con);
-		header('Location: index.php?courseInstanceID=' . $courseInstanceID . '&error=5');
+		mysql_close($con);
+		onError($courseInstanceID, 5);
 		return;
 	}
+	
+	next($assessed);
 }
 
 $query = "UPDATE CourseInstance SET State='Finalized' WHERE ID='$courseInstanceID';";
@@ -79,13 +163,66 @@ mysql_query($query, $con);
 if (mysql_errno() != 0)
 {
 	mysql_query('ROLLBACK;', $con);
-	header('Location: index.php?courseInstanceID=' . $courseInstanceID . '&error=5');
+	mysql_close($con);
+	onError($courseInstanceID, 5);
 	return;
 }
 
 mysql_query('COMMIT;', $con);
 mysql_close($con);
 
-header('Location: index.php?courseInstanceID=' . $courseInstanceID . '&error=0');
+switch (submitComments($courseInstanceID, $prep, $prepActions, $changes, $clo, $recs))
+{
+case 0:
+	onError($courseInstanceID, 12);
+	break;
+	
+case 1:
+	onError($courseInstanceID, 0);
+	break;
+	
+case 2:
+	onError($courseInstanceID, 5);
+	break;
+}
+
+return;
+
+function submitComments($courseInstanceID, $prep, $prepActions, $changes, $clo, $recs)
+{
+	$con = dbConnect();
+	if (!con)
+	{
+		die('Unable to connect to database: ' . mysql_error());
+	}
+	
+	if (($prep == '') AND ($prepActions == '') AND ($changes == '') AND ($clo == '') AND ($recs == ''))
+	{
+		return 1;
+	}
+	
+	$query =	"UPDATE CourseInstance SET " .
+				"CommentPrep='$prep', " .
+				"CommentPrepActions='$prepActions', " .
+				"CommentChanges='$changes', " .
+				"CommentCLO='$clo', " .
+				"CommentRecs='$recs' " .
+				"WHERE ID='$courseInstanceID';";
+	mysql_query($query, $con);
+	if (mysql_errno() != 0)
+	{
+		mysql_close($con);
+		return 2;
+	}
+
+	mysql_close($con);
+	return 0;
+}
+
+function onError($courseInstanceID, $errno)
+{
+	header('Location: index.php?courseInstanceID=' . $courseInstanceID . '&error=' . $errno);
+	return;
+}
 
 ?>
