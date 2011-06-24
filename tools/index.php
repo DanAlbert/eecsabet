@@ -19,8 +19,9 @@ if (!con)
 }
 if (isset($_REQUEST['courseID']))
 {
-	print	' | <a href="clo/index.php?courseID=' . $_REQUEST['courseID'] . '">Modify Course learning Outcomes</a> | ' .
-			'<a href="prerequisite/index.php?courseID=' . $_REQUEST['courseID'] . '">Modify Course Prerequisites</a>';
+	print	' | <a href="clo/index.php?courseID=' . $_REQUEST['courseID'] . '">Modify Course Learning Outcomes</a> | ' .
+			'<a href="prerequisite/index.php?courseID=' . $_REQUEST['courseID'] . '">Modify Course Prerequisites</a> | ' .
+			'<a href="terms-offered/index.php?courseID=' . $_REQUEST['courseID'] . '">Change Terms this Course is Offered</a>';
 }
 
 $query = "SELECT ID, Dept, CourseNumber FROM Course ORDER BY Dept ASC, CourseNumber ASC;";

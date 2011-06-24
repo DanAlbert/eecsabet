@@ -70,3 +70,9 @@ tools/prerequisite/create.php:
 
 tools/prerequisite/remove.php:
 	Removes a prerequisite course.
+
+tools/terms-offered/index.php:
+	Form for altering the terms a course is offered.
+
+tools/terms-offered/submit.php:
+	Submits changes in terms that a course is offered.

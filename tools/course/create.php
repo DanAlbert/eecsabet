@@ -42,6 +42,15 @@ if ($courseID == '')
 	return;
 }
 
+$query = "INSERT INTO TermsOffered (CourseID, Summer, Fall, Winter, Spring) VALUES ('$courseID', '0', '0', '0', '0');";
+if (mysql_query($query, $con) === false)
+{
+	print mysql_error();
+	mysql_query('ROLLBACK;', $con);
+	mysql_close($con);
+	return;
+}
+
 // Commit
 mysql_query('COMMIT;', $con);
 
