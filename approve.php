@@ -9,13 +9,13 @@ if (!con)
 }
 
 $courseInstanceID = mysql_real_escape_string($_REQUEST['courseInstanceID']);
-$assessed = mysql_real_escape_string($_POST['assessed']);
-$satisfactory = mysql_real_escape_string($_POST['satisfactory']);
+$assessed = $_POST['assessed'];
+$satisfactory = $_POST['satisfactory'];
 
 mysql_query('BEGIN TRANSACTION;', $con);
-for ($i = 1; $i <= sizeof($assessed); $i++)
+while ($current = current($assessed))
 {
-	if ($assessed == '')
+	if ($assessed[key($assessed)] == '')
 	{
 		mysql_query('ROLLBACK;', $con);
 		mysql_close($con);
@@ -23,7 +23,7 @@ for ($i = 1; $i <= sizeof($assessed); $i++)
 		return;
 	}
 
-	if ($satisfactory == '')
+	if ($satisfactory[key($assessed)] == '')
 	{
 		mysql_query('ROLLBACK;', $con);
 		mysql_close($con);
@@ -31,8 +31,7 @@ for ($i = 1; $i <= sizeof($assessed); $i++)
 		return;
 	}
 
-	$query = "UPDATE CourseInstanceCLO SET Assessed='" . $assessed[$i] . "', SatisfactoryScore='" . $satisfactory[$i] . "' WHERE CLOID='$i' AND CourseInstanceID='$courseInstanceID';";
-	//print $query . '<br />';
+	$query = "UPDATE CourseInstanceCLO SET Assessed='" . $assessed[key($assessed)] . "', SatisfactoryScore='" . $satisfactory[key($assessed)] . "' WHERE CLOID='" . key($assessed) . "' AND CourseInstanceID='$courseInstanceID';";
 	
 	mysql_query($query, $con);
 	if (mysql_errno() != 0)
@@ -41,6 +40,8 @@ for ($i = 1; $i <= sizeof($assessed); $i++)
 		header('Location: index.php?courseInstanceID=' . $courseInstanceID . '&error=5');
 		return;
 	}
+	
+	next($assessed);
 }
 
 $query = "UPDATE CourseInstance SET State='Approved' WHERE ID='$courseInstanceID';";

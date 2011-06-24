@@ -119,6 +119,26 @@ if (isset($_REQUEST['error']))
 	case 5:
 		print 'An error occurred while submitting changes to the server.';
 		break;
+		
+	case 6:
+		print 'You must provide how/where the outcome is assessed before finalizing.';
+		break;
+		
+	case 7:
+		print 'You must provide the mean score before finalizing.';
+		break;
+	
+	case 8:
+		print 'You must provide the median score before finalizing.';
+		break;
+		
+	case 9:
+		print 'You must provide the high score before finalizing.';
+		break;
+		
+	case 10:
+		print 'You must provide the satisfactory score before finalizing.';
+		break;
 	}
 }
 
@@ -243,11 +263,11 @@ while ($row = mysql_fetch_array($result))
 		print '<td>&nbsp;</td>';
 		print '<td>Request change</td>';
 		print '<td>&nbsp;</td>';
-		print '<td><input type="text" name="assessed[' . $row['CLONumber'] . ']" /></td>';
+		print '<td><input type="text" name="assessed[' . $row['CLOID'] . ']" /></td>';
 		print '<td>Locked until end of term.</td>';
 		print '<td>Locked until end of term.</td>';
 		print '<td>Locked until end of term.</td>';
-		print '<td><input type="text" name="satisfactory[' . $row['CLONumber'] . ']" /></td>';
+		print '<td><input type="text" name="satisfactory[' . $row['CLOID'] . ']" /></td>';
 		print '</tr>';
 		break;
 	case 'Ready':
@@ -309,7 +329,7 @@ if ($state != 'Finalized')
 // CommentPrep //
 print "<h3>Did the students in this course seem to have the preparation you expected? Describe any problems you observed in their preparation:</h3>";
 print '<textarea name="prep" cols="60" rows="10"';
-if ($state == 'Finalized')
+if ($state != 'Ready')
 {
 	print ' disabled="disabled"';
 }
@@ -322,7 +342,7 @@ print '</textarea>';
 // CommentPrepActions //
 print "<h3>Actions taken (if any) in response to the students' level of preparation:</h3>";
 print '<textarea name="prepActions" cols="60" rows="10"';
-if ($state == 'Finalized')
+if ($state != 'Ready')
 {
 	print ' disabled="disabled"';
 }
@@ -335,7 +355,7 @@ print '</textarea>';
 // CommentChanges //
 print "<h3>What other changes did you make compared with the last time this course was taught?</h3>";
 print '<textarea name="changes" cols="60" rows="10"';
-if ($state == 'Finalized')
+if ($state != 'Ready')
 {
 	print ' disabled="disabled"';
 }
@@ -348,7 +368,7 @@ print '</textarea>';
 // CommentCLO //
 print "<h3>Are there any other changes you recommend for the way that the CLOs are covered and/or assessed?</h3>";
 print '<textarea name="clo" cols="60" rows="10"';
-if ($state == 'Finalized')
+if ($state != 'Ready')
 {
 	print ' disabled="disabled"';
 }

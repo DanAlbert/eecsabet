@@ -16,31 +16,54 @@ $high = mysql_real_escape_string($_POST['high']);
 $satisfactory = mysql_real_escape_string($_POST['satisfactory']);
 
 mysql_query('BEGIN TRANSACTION;', $con);
-for ($i = 1; $i <= sizeof($assessed); $i++)
+while ($current = current($assessed))
 {
-	if ($assessed == '')
+	if ($assessed[key($assessed)] == '')
 	{
 		mysql_query('ROLLBACK;', $con);
 		mysql_close($con);
-		header('Location: index.php?courseInstanceID=' . $courseInstanceID . '&error=3');
+		header('Location: index.php?courseInstanceID=' . $courseInstanceID . '&error=6');
 		return;
 	}
 
-	if ($satisfactory == '')
+	if ($mean[key($assessed)] == '')
 	{
 		mysql_query('ROLLBACK;', $con);
 		mysql_close($con);
-		header('Location: index.php?courseInstanceID=' . $courseInstanceID . '&error=4');
+		header('Location: index.php?courseInstanceID=' . $courseInstanceID . '&error=7');
 		return;
 	}
 
-	//$query = "UPDATE CourseInstanceCLO SET Assessed='$assessed', MeanScore='$mean', MedianScore='$median', HighScore='$high', SatisfactoryScore='$satisfactory', State='Finalized' WHERE CLOID='$outcomeID' AND CourseInstanceID='$courseInstanceID';";
-	$query =	"UPDATE CourseInstanceCLO SET Assessed='" . $assessed[$i] .
-				"', MeanScore='" . $mean[$i] .
-				"', MedianScore='" . $median[$i] .
-				"', HighScore='" . $high[$i] .
-				"', SatisfactoryScore='" . $satisfactory[$i] .
-				"' WHERE CLOID='$i' AND CourseInstanceID='$courseInstanceID';";
+	if ($median[key($assessed)] == '')
+	{
+		mysql_query('ROLLBACK;', $con);
+		mysql_close($con);
+		header('Location: index.php?courseInstanceID=' . $courseInstanceID . '&error=8');
+		return;
+	}
+
+	if ($high[key($assessed)] == '')
+	{
+		mysql_query('ROLLBACK;', $con);
+		mysql_close($con);
+		header('Location: index.php?courseInstanceID=' . $courseInstanceID . '&error=9');
+		return;
+	}
+
+	if ($satisfactory[key($assessed)] == '')
+	{
+		mysql_query('ROLLBACK;', $con);
+		mysql_close($con);
+		header('Location: index.php?courseInstanceID=' . $courseInstanceID . '&error=10');
+		return;
+	}
+	
+	$query =	"UPDATE CourseInstanceCLO SET Assessed='" . $assessed[key($assessed)] .
+				"', MeanScore='" . $mean[key($assessed)] .
+				"', MedianScore='" . $median[key($assessed)] .
+				"', HighScore='" . $high[key($assessed)] .
+				"', SatisfactoryScore='" . $satisfactory[key($assessed)] .
+				"' WHERE CLOID='" . key($assessed) . "' AND CourseInstanceID='$courseInstanceID';";
 	
 	mysql_query($query, $con);
 	if (mysql_errno() != 0)

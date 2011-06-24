@@ -30,6 +30,7 @@ ORDER BY MasterCLO.CourseID, CLO.CLONumber;
 
 CREATE ALGORITHM=UNDEFINED VIEW CourseInstanceCLOInformation AS
 SELECT	CourseInstance.ID AS CourseInstanceID,
+		CLO.ID AS CLOID,
 		CLO.CLONumber,
 		CLO.Title,
 		CLO.Description,

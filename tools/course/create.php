@@ -9,9 +9,18 @@ if (!con)
 }
 
 $dept = mysql_real_escape_string($_POST['dept']);
-$courseNumber = mysql_real_escape_string($_POST['courseNumber']);
+$courseNumberString = mysql_real_escape_string($_POST['courseNumber']);
 $creditHours = mysql_real_escape_string($_POST['creditHours']);
 $description = mysql_real_escape_string($_POST['description']);
+
+$courseNumber = '';
+foreach (str_split($courseNumberString) as $char)
+{
+	if (ctype_digit($char))
+	{
+		$courseNumber .= $char;
+	}
+}
 
 // Begin
 mysql_query('START TRANSACTION;', $con);
