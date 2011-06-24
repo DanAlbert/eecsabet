@@ -8,9 +8,6 @@ index.php:
 approve.php:
 	Used to submit changes to CLO assessment areas and satisfactory scores.
 
-comment.php:
-	Used to submit comments regarding courses.
-
 db.php:
 	Contains MySQL database utilities.
 
