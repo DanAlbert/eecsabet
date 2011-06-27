@@ -121,3 +121,28 @@ SELECT	C1.ID AS CourseID,
 FROM Course AS C1 LEFT OUTER JOIN Prerequisites AS P1 ON P1.CourseID=C1.ID LEFT OUTER JOIN Prerequisites AS P2 ON P2.CourseID=C1.ID, TermsOffered
 WHERE C1.ID=TermsOffered.CourseID AND P1.PrerequisiteID IS NULL AND P2.PrerequisiteID IS NULL
 ORDER BY Dept, CourseNumber;
+
+CREATE ALGORITHM=UNDEFINED VIEW NaggingInformation AS
+SELECT DISTINCT	Instructor.Name,
+				Instructor.Email,
+				CONCAT(Course.Dept, ' ', Course.CourseNumber) AS Course,
+				CourseInstance.ID AS InstanceID,
+				CourseInstance.State AS State
+FROM CourseInstance, TermState, Course, Instructor
+WHERE	CourseInstance.TermID=TermState.TermID AND
+		CourseInstance.State<(SELECT State+0 FROM TermState WHERE TermID=CourseInstance.TermID) AND
+		TermState.TermID=(SELECT MAX(TermID) FROM TermState) AND
+		Course.ID=CourseInstance.CourseID AND
+		Instructor.Email=CourseInstance.Instructor;
+
+CREATE ALGORITHM=UNDEFINED VIEW TermStateInformation AS
+SELECT	CourseInstance.TermID AS Term,
+		TermState.State AS State
+FROM CourseInstance, TermState
+WHERE CourseInstance.TermID=TermState.TermID;
+
+CREATE ALGORITHM=UNDEFINED VIEW CurrentTermStateInformation AS
+SELECT	Term AS CurrentTerm,
+		State AS CurrentState
+FROM TermStateInformation
+WHERE CurrentTerm=(SELECT MAX(TermID) FROM TermState);

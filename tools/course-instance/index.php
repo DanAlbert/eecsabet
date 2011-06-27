@@ -57,7 +57,7 @@
 	
 	print '<select name="year">';
 	$date = getdate();
-	foreach (range(2005, $date['year']) as $year)
+	foreach (range(2005, $date['year'] + 1) as $year)
 	{
 		print '<option value="' . $year . '"';
 		if ($year == $date['year'])

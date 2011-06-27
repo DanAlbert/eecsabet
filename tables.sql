@@ -24,7 +24,7 @@ CREATE TABLE CourseInstance
 	CourseID INT NOT NULL,
 	Instructor VARCHAR(255) NOT NULL,
 	TermID INT(6) NOT NULL,
-	State SET ('Sent', 'Viewed', 'Approved', 'Ready', 'Finalized') NOT NULL DEFAULT 'Sent',
+	State ENUM ('Sent', 'Viewed', 'Approved', 'Ready', 'Finalized') NOT NULL DEFAULT 'Sent',
 	CommentPrep TEXT NOT NULL DEFAULT '',
 	CommentPrepActions TEXT NOT NULL DEFAULT '',
 	CommentChanges TEXT NOT NULL DEFAULT '',
@@ -97,4 +97,11 @@ CREATE TABLE TermsOffered
 	Spring BOOL NOT NULL DEFAULT 0,
 	PRIMARY KEY (CourseID),
 	FOREIGN KEY (CourseID) REFERENCES Course (ID)
+) ENGINE=InnoDB;
+
+CREATE TABLE TermState
+(
+	TermID INT(6) NOT NULL,
+	State ENUM ('Sent', 'Viewed', 'Approved', 'Ready', 'Finalized') NOT NULL DEFAULT 'Sent',
+	PRIMARY KEY (Term)
 ) ENGINE=InnoDB;

@@ -71,6 +71,15 @@ tools/prerequisite/create.php:
 tools/prerequisite/remove.php:
 	Removes a prerequisite course.
 
+tools/state/index.php:
+	Displays the current term, the term's state, any instructors that have yet to complete their forms,and allows the administrator to make courses ready for finalization.
+
+tools/state/nag.php:
+	Sends nagging emails to all instructors that have yet to complete their forms.
+
+tools/state/ready.php:
+	Advances the TermState and all CourseInstances for the current term to Ready and sends out notification emails.
+
 tools/terms-offered/index.php:
 	Form for altering the terms a course is offered.
 
