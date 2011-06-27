@@ -33,7 +33,7 @@
 	print '<label for="instructor">Instructor</label>';
 	print '<select id="instructor" name="instructor">';
 	
-	$query = "SELECT Name, Email FROM Instructor;";
+	$query = "SELECT CONCAT(FirstName, ' ', LastName) AS Name, Email FROM Instructor ORDER BY LastName ASC, FirstName ASC;";
 	$result = mysql_query($query, $con);
 	while ($row = mysql_fetch_array($result))
 	{

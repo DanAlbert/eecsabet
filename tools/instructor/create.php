@@ -8,13 +8,14 @@ if (!con)
 	die('Unable to connect to database: ' . mysql_error());
 }
 
-$name = mysql_real_escape_string($_POST['name']);
+$firstName = mysql_real_escape_string($_POST['firstName']);
+$lastName = mysql_real_escape_string($_POST['lastName']);
 $email = mysql_real_escape_string($_POST['email']);
 
 $termID = $year . $term;
 
 // Insert Instructor
-$query = "INSERT INTO Instructor (Name, Email) VALUES ('$name', '$email');";
+$query = "INSERT INTO Instructor (FirstName, LastName, Email) VALUES ('$firstName', '$lastName', '$email');";
 
 if (mysql_query($query, $con) === false)
 {

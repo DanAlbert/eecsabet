@@ -78,7 +78,7 @@ if (mysql_num_rows($result) == 0)
 	}
 }
 
-$query = "SELECT Name FROM Instructor WHERE Email='$instructor';";
+$query = "SELECT CONCAT(FirstName, ' ', LastName) AS Name FROM Instructor WHERE Email='$instructor';";
 $result = mysql_query($query, $con);
 $row = mysql_fetch_array($result);
 $instructorName = $row['Name'];

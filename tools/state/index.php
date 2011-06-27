@@ -29,7 +29,7 @@ $result = mysql_query($query, $con);
 $instructors = array();
 while ($row = mysql_fetch_array($result))
 {
-	$instructors[] = array('Name' => $row['Name'], 'Email' => $row['Email'], 'State' => $row['State']);
+	$instructors[] = array('Name' => $row['FirstName'] . ' ' . $row['LastName'], 'Email' => $row['Email'], 'State' => $row['State']);
 }
 
 mysql_close();

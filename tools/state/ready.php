@@ -31,7 +31,7 @@ if (!mysql_query($query, $con))
 mysql_query('COMMIT;', $con);
 
 $instructors = array();
-$query =	"SELECT DISTINCT	Instructor.Name,
+$query =	"SELECT DISTINCT	CONCAT (Instructor.FirstName, ' ', Instructor.LastName) AS Name,
 								Instructor.Email
 			FROM CourseInstance, Instructor
 			WHERE	CourseInstance.TermID=(SELECT MAX(TermState.TermID) FROM TermState) AND

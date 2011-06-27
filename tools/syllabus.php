@@ -56,12 +56,12 @@ else
 	$reqThis = $row['Courses'];
 }
 
-$query = "SELECT DISTINCT Name FROM Instructor, CourseInstance WHERE CourseInstance.Instructor=Instructor.Email AND CourseInstance.CourseID='$courseID';";
+$query = "SELECT DISTINCT FirstName, LastName FROM Instructor, CourseInstance WHERE CourseInstance.Instructor=Instructor.Email AND CourseInstance.CourseID='$courseID' ORDER BY LastName ASC, FirstName ASC;";
 $result = mysql_query($query, $con);
 $instructors = array();
 while ($row = mysql_fetch_array($result))
 {
-	$instructors[] = $row['Name'];
+	$instructors[] = $row['FirstName'] . ' ' . $row['LastName'];
 }
 
 $instructorString = '';
@@ -74,6 +74,7 @@ foreach ($instructors as $instructor)
 	}
 	
 	$instructorString .= $instructor;
+	$first = false;
 }
 
 $clos = array();

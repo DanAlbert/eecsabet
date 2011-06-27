@@ -1,7 +1,8 @@
 CREATE TABLE Instructor
 (
 	Email VARCHAR(255),
-	Name VARCHAR(255),
+	FirstName VARCHAR(255),
+	LastName VARCHAR(255),
 	PRIMARY KEY (Email)
 ) ENGINE=InnoDB;
 

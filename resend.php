@@ -16,7 +16,7 @@ if (!$con)
 
 $email = mysql_real_escape_string($_POST['email']);
 
-$query = "SELECT Name FROM Instructor WHERE Email='$email';";
+$query = "SELECT CONCAT(FirstName, ' ', LastName) AS Name FROM Instructor WHERE Email='$email';";
 $result = mysql_query($query, $con);
 $row = mysql_fetch_array($result);
 $instructorName = $row['Name'];

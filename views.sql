@@ -5,7 +5,8 @@ SELECT	CourseInstance.ID AS CourseInstanceID,
 		Course.CreditHours,
 		Course.Description,
 		CourseInstance.TermID,
-		Instructor.Name,
+		Instructor.FirstName,
+		Instructor.LastName,
 		CourseInstance.State,
 		CourseInstance.CommentPrep,
 		CourseInstance.CommentPrepActions,
@@ -123,7 +124,8 @@ WHERE C1.ID=TermsOffered.CourseID AND P1.PrerequisiteID IS NULL AND P2.Prerequis
 ORDER BY Dept, CourseNumber;
 
 CREATE ALGORITHM=UNDEFINED VIEW NaggingInformation AS
-SELECT DISTINCT	Instructor.Name,
+SELECT DISTINCT	Instructor.FirstName,
+				Instructor.LastName,
 				Instructor.Email,
 				CONCAT(Course.Dept, ' ', Course.CourseNumber) AS Course,
 				CourseInstance.ID AS InstanceID,
