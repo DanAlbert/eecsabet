@@ -59,7 +59,7 @@ $maxCLOID = $row['MaxCLOID'];
 $newCLOID = $maxCLOID + 1;
 $newIDs = array();
 
-// Insert CourseInstance
+// Insert CLOs
 $query = "INSERT INTO CLO (ID, CourseID, CLONumber, Description) VALUES";
 $outcomes = array();
 $first = true;
@@ -81,7 +81,6 @@ foreach ($changed as $changedID)
 }
 $query .= ";";
 
-//print $query . '<br />';
 if (mysql_query($query, $con) === false)
 {
 	print mysql_error();
@@ -104,7 +103,6 @@ foreach ($changed as $changedID)
 }
 $query .= ');';
 
-//print $query . '<br />';
 if (mysql_query($query, $con) === false)
 {
 	print mysql_error();
@@ -128,7 +126,6 @@ foreach ($newIDs as $newID)
 }
 $query .= ";";
 
-//print $query . '<br />';
 if (mysql_query($query, $con) === false)
 {
 	print mysql_error();
@@ -157,8 +154,6 @@ foreach ($newIDs as $newID)
 	}
 }
 $query .= ";";
-
-//print $query . '<br />';
 
 if (mysql_query($query, $con) === false)
 {
