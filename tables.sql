@@ -17,15 +17,13 @@ CREATE TABLE Course
 	UNIQUE (Dept, CourseNumber)
 ) ENGINE=InnoDB;
 
--- If multiple instructors for same term, do we need a separate instance?
--- Will the different sections have different metrics?
 CREATE TABLE CourseInstance
 (
 	ID INT AUTO_INCREMENT NOT NULL,
 	CourseID INT NOT NULL,
 	Instructor VARCHAR(255) NOT NULL,
 	TermID INT(6) NOT NULL,
-	State ENUM ('Sent', 'Viewed', 'Approved', 'Ready', 'Finalized') NOT NULL DEFAULT 'Sent',
+	State ENUM ('Sent', 'Approved', 'Ready', 'Finalized') NOT NULL DEFAULT 'Sent',
 	CommentPrep TEXT NOT NULL DEFAULT '',
 	CommentPrepActions TEXT NOT NULL DEFAULT '',
 	CommentChanges TEXT NOT NULL DEFAULT '',
@@ -76,7 +74,7 @@ CREATE TABLE CourseInstanceCLO
 	SatisfactoryScore INT,
 	PRIMARY KEY (CLOID, CourseInstanceID),
 	FOREIGN KEY (CLOID) REFERENCES CLO (ID),
-	FOREIGN KEY (CourseInstanceID) REFERENCES CourseInstance (ID)
+	FOREIGN KEY (CourseInstanceID) REFERENCES CourseInstance (ID) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
 CREATE TABLE Prerequisites
@@ -103,6 +101,6 @@ CREATE TABLE TermsOffered
 CREATE TABLE TermState
 (
 	TermID INT(6) NOT NULL,
-	State ENUM ('Sent', 'Viewed', 'Approved', 'Ready', 'Finalized') NOT NULL DEFAULT 'Sent',
+	State ENUM ('Sent', 'Approved', 'Ready', 'Finalized') NOT NULL DEFAULT 'Sent',
 	PRIMARY KEY (Term)
 ) ENGINE=InnoDB;
