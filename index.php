@@ -55,6 +55,7 @@ case 3:
 }
 
 print '<h1>Editing ABET Details for ' . $row['Dept'] . ' ' . $row['CourseNumber'] . ' (' . $row['CreditHours'] . ')</h1>';
+print '<h2>' . $row['Title'] . '</h2>';
 print '<h2>' . $term . ' ' . $year . '</h2>';
 print '<h3>' . $row['FirstName'] . ' ' . $row['LastName'] . '</h3>';
 print '<h3>Catalog Description</h3>';

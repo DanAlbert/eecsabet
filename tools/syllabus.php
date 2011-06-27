@@ -16,6 +16,7 @@ $row = mysql_fetch_array($result);
 
 $dept = $row['Dept'];
 $num = $row['CourseNumber'];
+$title = $row['Title'];
 $descrip = $row['Description'];
 $credits = $row['CreditHours'];
 $terms = array('Summer' => $row['Summer'], 'Fall' => $row['Fall'], 'Winter' => $row['Winter'], 'Spring' => $row['Spring']);
@@ -86,7 +87,7 @@ while ($row = mysql_fetch_array($result))
 	$clos[] = $row['Description'] . ' (ABET Outcomes: ' . $row['Outcomes'] . ')';
 }
 
-print "<h1>$dept $num</h1>";
+print "<h1>$dept $num - $title</h1>";
 print "<h2>Catalog Description:</h2>";
 print "<p>$descrip</p>";
 print "<strong>Credit Hours:</strong> $credits<br />";

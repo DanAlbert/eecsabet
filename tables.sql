@@ -11,10 +11,12 @@ CREATE TABLE Course
 	ID INT AUTO_INCREMENT NOT NULL,
 	Dept VARCHAR(4) NOT NULL,
 	CourseNumber INT NOT NULL,
+	Title VARCHAR(255) NOT NULL,
 	CreditHours INT NOT NULL,
 	Description TEXT NOT NULL DEFAULT '',
 	PRIMARY KEY(ID),
-	UNIQUE (Dept, CourseNumber)
+	UNIQUE (Dept, CourseNumber),
+	UNIQUE (Dept, Title)
 ) ENGINE=InnoDB;
 
 CREATE TABLE CourseInstance
