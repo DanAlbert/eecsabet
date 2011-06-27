@@ -14,6 +14,7 @@ CREATE TABLE Course
 	Title VARCHAR(255) NOT NULL,
 	CreditHours INT NOT NULL,
 	Description TEXT NOT NULL DEFAULT '',
+	Structure TEXT NOT NULL DEFAULT '',
 	PRIMARY KEY(ID),
 	UNIQUE (Dept, CourseNumber),
 	UNIQUE (Dept, Title)

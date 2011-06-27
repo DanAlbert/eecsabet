@@ -18,6 +18,7 @@ $dept = $row['Dept'];
 $num = $row['CourseNumber'];
 $title = $row['Title'];
 $descrip = $row['Description'];
+$structure = $row['Structure'];
 $credits = $row['CreditHours'];
 $terms = array('Summer' => $row['Summer'], 'Fall' => $row['Fall'], 'Winter' => $row['Winter'], 'Spring' => $row['Spring']);
 
@@ -116,6 +117,7 @@ else
 print "<br />";
 
 print "<strong>Courses that require this as a prerequisite:</strong> $reqThis<br />";
+print "<strong>Structure:</strong> $structure<br />";
 print "<strong>Instructors:</strong> $instructorString<br />";
 print "<h2>Measurable Student Leaning Outcomes:</h2>";
 print "At the completion of the course, students will be able to...";
