@@ -40,9 +40,11 @@ switch ($termID - ($year * 100))
 {
 case 0:
 	$term = 'Summer';
+	$year -= 1;
 	break;
 case 1:
 	$term = 'Fall';
+	$year -= 1;
 	break;
 case 2:
 	$term = 'Winter';

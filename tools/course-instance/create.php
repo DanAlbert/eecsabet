@@ -13,6 +13,11 @@ $instructor = mysql_real_escape_string($_POST['instructor']);
 $term = mysql_real_escape_string($_POST['term']);
 $year = mysql_real_escape_string($_POST['year']);
 
+if (($term == '00') OR ($term == '01'))
+{
+	$year += 1;
+}
+
 $termID = $year . $term;
 
 // Begin
