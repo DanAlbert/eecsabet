@@ -24,7 +24,7 @@ $instructorName = $row['Name'];
 $pageURL = 'http://web.engr.oregonstate.edu/~albertd/eecsabet/index.php';
 
 $to = $email;
-$subject = "New course requires ABET information";
+$subject = "Your courses that require ABET information";
 $body = "These are the courses we have you listed as teaching this term. Please provide any missing information soon. To do so, visit the following pages:";
 
 $headers  = 'MIME-Version: 1.0' . "\r\n";
