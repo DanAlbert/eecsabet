@@ -21,7 +21,6 @@ CREATE ALGORITHM=UNDEFINED VIEW CourseCLOInformation AS
 SELECT	MasterCLO.CourseID AS CourseID,
 		MasterCLO.CLOID AS CLOID,
 		CLO.CLONumber,
-		CLO.Title,
 		CLO.Description,
 		GROUP_CONCAT(DISTINCT CLOOutcomes.ABETOutcome ORDER BY CLOOutcomes.ABETOutcome ASC SEPARATOR ', ') AS Outcomes
 FROM MasterCLO, CLO, CLOOutcomes
@@ -33,7 +32,6 @@ CREATE ALGORITHM=UNDEFINED VIEW CourseInstanceCLOInformation AS
 SELECT	CourseInstance.ID AS CourseInstanceID,
 		CLO.ID AS CLOID,
 		CLO.CLONumber,
-		CLO.Title,
 		CLO.Description,
 		GROUP_CONCAT(DISTINCT CLOOutcomes.ABETOutcome ORDER BY CLOOutcomes.ABETOutcome ASC SEPARATOR ', ') AS Outcomes,
 		CourseInstanceCLO.Assessed,

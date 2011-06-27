@@ -19,7 +19,6 @@ while ($row = mysql_fetch_array($result))
 {
 	$values = array();
 	$values['CLONumber'] = $row['CLONumber'];
-	$values['Title'] = $row['Title'];
 	$values['Description'] = $row['Description'];
 	$values['Outcomes'] = $row['Outcomes'];
 	
@@ -61,13 +60,12 @@ $newCLOID = $maxCLOID + 1;
 $newIDs = array();
 
 // Insert CourseInstance
-$query = "INSERT INTO CLO (ID, CourseID, CLONumber, Title, Description) VALUES";
+$query = "INSERT INTO CLO (ID, CourseID, CLONumber, Description) VALUES";
 $outcomes = array();
 $first = true;
 foreach ($changed as $changedID)
 {
 	$cloNumber = $numbers[$changedID];
-	$title = $oldValues[$changedID]['Title'];
 	$description = $oldValues[$changedID]['Description'];
 	
 	if (!$first)
@@ -75,7 +73,7 @@ foreach ($changed as $changedID)
 		$query .= ' ,';
 	}
 	
-	$query .= " ('$newCLOID', '$courseID', '$cloNumber', '$title', '$description')";
+	$query .= " ('$newCLOID', '$courseID', '$cloNumber', '$description')";
 	$newIDs[] = $newCLOID;
 	$outcomes[$newCLOID] = $oldValues[$changedID]['Outcomes'];
 	$newCLOID++;

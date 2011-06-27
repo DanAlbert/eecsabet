@@ -93,7 +93,6 @@ if (isset($_REQUEST['error']) AND ($_REQUEST['error'] == 2))
 			<tr>
 				<th>Remove</th>
 				<th>Number</th>
-				<th>Title</th>
 				<th>Description</th>
 				<th>Outcomes</th>
 			</tr>
@@ -110,7 +109,6 @@ if (isset($_REQUEST['error']) AND ($_REQUEST['error'] == 2))
 				print '<tr>';
 				print '<td><input type="checkbox" name="remove[' . $row['CLOID'] . ']" /></td>';
 				print '<td>' . $num . '</td>';
-				print '<td>' . $row['Title'] . '</td>';
 				print '<td>' . $row['Description'] . '</td>';
 				print '<td>' . $row['Outcomes'] . '</td>';
 				print '</tr>';
@@ -136,7 +134,6 @@ if (isset($_REQUEST['error']) AND ($_REQUEST['error'] == 3))
 		<thead>
 			<tr>
 				<th>Number</th>
-				<th>Title</th>
 				<th>Description</th>
 				<th>Outcomes</th>
 			</tr>
@@ -157,7 +154,6 @@ if (isset($_REQUEST['error']) AND ($_REQUEST['error'] == 3))
 						'<button type="button" onclick="moveDown(' . $num . ')">+</button>' .
 						'<button type="button" onclick="moveUp(' . $num . ')">-</button></td>';
 				
-				print '<td>' . $row['Title'] . '</td>';
 				print '<td>' . $row['Description'] . '</td>';
 				print '<td>' . $row['Outcomes'] . '</td>';
 				print '</tr>';
@@ -185,9 +181,6 @@ if (isset($_REQUEST['error']) AND ($_REQUEST['error'] == 1))
 </p>
 
 <form action="create.php?courseID=<?php echo $courseID; ?>" method="POST">
-	<label for="title">Title</label>
-	<input id="title" type="text" name="title" />
-	
 	<label for="description">Description</label>
 	<textarea id="description" name="description" cols="60" rows="10"></textarea>
 	

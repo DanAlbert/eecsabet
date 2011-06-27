@@ -9,7 +9,6 @@ if (!con)
 }
 
 $courseID = mysql_real_escape_string($_REQUEST['courseID']);
-$title = mysql_real_escape_string($_POST['title']);
 $description = mysql_real_escape_string($_POST['description']);
 $outcomeString = mysql_real_escape_string($_POST['outcomes']);
 
@@ -61,7 +60,7 @@ $maxCLOID = $row['MaxCLOID'];
 $newCLOID = $maxCLOID + 1;
 
 // Insert CourseInstance
-$query = "INSERT INTO CLO (ID, CourseID, CLONumber, Title, Description) VALUES ('$newCLOID', '$courseID', '$newCLONumber', '$title', '$description');";
+$query = "INSERT INTO CLO (ID, CourseID, CLONumber, Description) VALUES ('$newCLOID', '$courseID', '$newCLONumber', '$description');";
 if (mysql_query($query, $con) === false)
 {
 	print mysql_error();
