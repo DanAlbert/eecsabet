@@ -50,7 +50,6 @@ while (($term = current($terms)) !== false)
 $prereqs = $row['Prerequisites'];
 $coreqs = $row['Corequisites'];
 
-
 $query = "SELECT GROUP_CONCAT(CONCAT(C1.Dept, ' ', C1.CourseNumber) SEPARATOR ', ') AS Courses FROM Course AS C1, Course AS C2, Prerequisites WHERE Prerequisites.PrerequisiteID=C2.ID AND Prerequisites.CourseID=C1.ID AND C2.ID='$courseID' GROUP BY C2.ID;";
 $result = mysql_query($query, $con);
 
@@ -111,6 +110,22 @@ while ($row = mysql_fetch_array($result))
 {
 	$resources[] = $row['Resource'];
 }
+
+$query = "SELECT LastRevision FROM SyllabusTimestamp;";
+$result = mysql_query($query, $con);
+$row = mysql_fetch_array($result);
+$syllabusDate = makeDateString($row['LastRevision']);
+
+$query = "SELECT Policy, LastRevision FROM DisabilitiesPolicy;";
+$result = mysql_query($query, $con);
+$row = mysql_fetch_array($result);
+$policy = $row['Policy'];
+$policyDate = makeDateString($row['LastRevision']);
+
+$query = "SELECT URL FROM StudentConduct;";
+$result = mysql_query($query, $con);
+$row = mysql_fetch_array($result);
+$conduct = $row['URL'];
 
 print "<h1>$dept $num - $title</h1>";
 print "<h2>Catalog Description:</h2>";
@@ -173,6 +188,30 @@ if (sizeof($resources) > 0)
 		print "<li>$r</li>";
 	}
 	print "</ul>";
+}
+
+print "<h2>Student with Disabilites:</h2>";
+print "<p>$policy</p>";
+
+print "<h2>Link to Statement of Expectations for Student Conduct:</h2>";
+print "<a href=\"$conduct\">$conduct</a><br />";
+print "<br />";
+print "Revised: $syllabusDate<br />";
+print "Revised Students with Disabilities: $policyDate";
+
+function makeDateString($timestamp)
+{
+	$components = explode(' ', $timestamp);
+	$date = $policyComponents[0];
+	$dateComponents = explode('-', $timestamp);
+
+	$year = $dateComponents[0] . '';
+	$month = $dateComponents[1] + 0;
+	$day = $dateComponents[2] + 0;
+
+	$year = substr($year, 2); // Only show last two digits.
+
+	return "$month/$day/$year";
 }
 
 ?>

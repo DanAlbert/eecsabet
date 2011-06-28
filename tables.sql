@@ -126,3 +126,27 @@ CREATE TABLE LearningResources
 	UNIQUE (CourseID, Resource),
 	FOREIGN KEY (CourseID) REFERENCES Course (ID)
 ) ENGINE=InnoDB;
+
+CREATE TABLE SyllabusTimestamp
+(
+	CourseID INT NOT NULL,
+	LastRevision TIMESTAMP,
+	PRIMARY KEY (CourseID),
+	FOREIGN KEY (CourseID) REFERENCES Course (ID)
+) ENGINE=InnoDB;
+
+CREATE TABLE DisabilitiesPolicy
+(
+	ID INT NOT NULL DEFAULT 0,
+	Policy TEXT NOT NULL DEFAULT '',
+	LastRevision TIMESTAMP,
+	PRIMARY KEY (ID)
+) ENGINE=InnoDB;
+
+CREATE TABLE StudentConduct
+(
+	ID INT NOT NULL DEFAULT 0,
+	URL VARCHAR(255) NOT NULL,
+	LastRevision TIMESTAMP,
+	PRIMARY KEY (ID)
+) ENGINE=InnoDB;
