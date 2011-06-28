@@ -85,8 +85,17 @@ function printABETSyllabus($courseID)
 		$row = mysql_fetch_array($result);
 		$reqThis = $row['Courses'];
 	}
-
-	$query = "SELECT DISTINCT FirstName, LastName FROM Instructor, CourseInstance WHERE CourseInstance.Instructor=Instructor.Email AND CourseInstance.CourseID='$courseID' ORDER BY LastName ASC, FirstName ASC;";
+	
+	$query = "	SELECT DISTINCT	FirstName,
+								LastName
+				FROM	Instructor,
+						CourseInstance
+				WHERE	CourseInstance.Instructor=Instructor.Email AND
+						CourseInstance.CourseID='2' AND
+						CourseInstance.TermID=(SELECT MAX(TermID) FROM CourseInstance WHERE CourseInstance.CourseID='2')
+				ORDER BY	LastName ASC,
+							FirstName ASC;";
+	
 	$result = mysql_query($query, $con);
 	$instructors = array();
 	while ($row = mysql_fetch_array($result))
