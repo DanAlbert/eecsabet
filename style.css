@@ -84,6 +84,7 @@ input[type="checkbox"]
 input[type="checkbox"]+label
 {
 	display: inline;
+	margin-left: 4px;
 }
 
 td input

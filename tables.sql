@@ -89,6 +89,17 @@ CREATE TABLE Prerequisites
 	FOREIGN KEY (PrerequisiteID) REFERENCES Course (ID) ON UPDATE CASCADE
 ) ENGINE=InnoDB;
 
+CREATE TABLE PrerequisiteAlternatives
+(
+	CourseID INT NOT NULL,
+	PrerequisiteID INT NOT NULL,
+	AlternativeID INT NOT NULL,
+	PRIMARY KEY (CourseID, PrerequisiteID, AlternativeID),
+	FOREIGN KEY (CourseID) REFERENCES Course (ID),
+	FOREIGN KEY (PrerequisiteID) REFERENCES Course (ID),
+	FOREIGN KEY (AlternativeID) REFERENCES Course (ID)
+) ENGINE=InnoDB;
+
 CREATE TABLE TermsOffered
 (
 	CourseID INT NOT NULL,

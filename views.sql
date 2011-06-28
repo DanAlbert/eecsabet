@@ -49,11 +49,31 @@ CREATE ALGORITHM=UNDEFINED VIEW PrerequisiteInformation AS
 SELECT	Prerequisites.CourseID,
 		Prerequisites.PrerequisiteID,
 		Prerequisites.IsCorequisite,
+		C1.Dept,
+		C1.CourseNumber,
+		GROUP_CONCAT(DISTINCT CONCAT(C2.Dept, ' ', C2.CourseNumber) ORDER BY C2.Dept ASC, C2.CourseNumber ASC SEPARATOR ', ') AS Alternatives
+FROM Prerequisites, PrerequisiteAlternatives, Course AS C1, Course AS C2
+WHERE	C1.ID=Prerequisites.PrerequisiteID AND
+		C1.ID=PrerequisiteAlternatives.PrerequisiteID AND
+		C2.ID=PrerequisiteAlternatives.AlternativeID AND
+		Prerequisites.CourseID=PrerequisiteAlternatives.CourseID
+GROUP BY Prerequisites.PrerequisiteID, Prerequisites.CourseID
+UNION
+SELECT	Prerequisites.CourseID,
+		Prerequisites.PrerequisiteID,
+		Prerequisites.IsCorequisite,
 		Course.Dept,
-		Course.CourseNumber
+		Course.CourseNumber,
+		NULL
 FROM Prerequisites, Course
-WHERE Course.ID=Prerequisites.PrerequisiteID
-ORDER BY Course.Dept ASC, Course.CourseNumber ASC;
+WHERE	Course.ID=Prerequisites.PrerequisiteID AND
+		Course.ID NOT IN (	SELECT Prerequisites.PrerequisiteID
+							FROM Prerequisites, PrerequisiteAlternatives, Course AS C1, Course AS C2
+							WHERE	C1.ID=Prerequisites.PrerequisiteID AND
+									C1.ID=PrerequisiteAlternatives.PrerequisiteID AND
+									C2.ID=PrerequisiteAlternatives.AlternativeID AND
+									Prerequisites.CourseID=PrerequisiteAlternatives.CourseID)
+ORDER BY Dept ASC, CourseNumber ASC;
 
 CREATE ALGORITHM=UNDEFINED VIEW CourseInformation AS
 SELECT	C1.ID AS CourseID,
@@ -155,3 +175,33 @@ SELECT	Term AS CurrentTerm,
 		State AS CurrentState
 FROM TermStateInformation
 WHERE CurrentTerm=(SELECT MAX(TermID) FROM TermState);
+
+CREATE ALGORITHM=UNDEFINED VIEW PrerequisiteAlternativesInformation AS
+SELECT DISTINCT	C1.ID AS CourseID,
+				GROUP_CONCAT(DISTINCT CONCAT(C2.Dept, ' ', C2.CourseNumber) SEPARATOR ' or ') AS Prerequisite,
+				Prerequisites.IsCorequisite
+FROM Prerequisites, PrerequisiteAlternatives, Course AS C1, Course AS C2, Course AS C3
+WHERE	C1.ID=PrerequisiteAlternatives.CourseID AND
+		C1.ID=Prerequisites.CourseID AND
+		C2.ID=Prerequisites.PrerequisiteID AND
+		C2.ID=PrerequisiteAlternatives.PrerequisiteID AND
+		C3.ID=PrerequisiteAlternatives.AlternativeID
+GROUP BY C1.ID
+UNION
+SELECT DISTINCT	C1.ID AS CourseID,
+				CONCAT(C2.Dept, ' ', C2.CourseNumber) AS Prerequisite,
+				Prerequisites.IsCorequisite
+FROM Prerequisites, Course AS C1, Course AS C2
+WHERE	C1.ID=Prerequisites.CourseID AND
+		C2.ID=Prerequisites.PrerequisiteID AND
+		C2.ID NOT IN (	SELECT DISTINCT	C2.ID AS CourseID
+						FROM	Prerequisites,
+								PrerequisiteAlternatives,
+								Course AS C1,
+								Course AS C2,
+								Course AS C3
+						WHERE	C1.ID=PrerequisiteAlternatives.CourseID AND
+								C1.ID=Prerequisites.CourseID AND
+								C2.ID=Prerequisites.PrerequisiteID AND
+								C2.ID=PrerequisiteAlternatives.PrerequisiteID AND
+								C3.ID=PrerequisiteAlternatives.AlternativeID);

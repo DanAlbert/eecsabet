@@ -42,13 +42,40 @@ while (($term = current($terms)) !== false)
 		}
 		
 		$termsString .= key($terms);
+		$first = false;
 	}
 	
 	next($terms);
 }
 
-$prereqs = $row['Prerequisites'];
-$coreqs = $row['Corequisites'];
+$prereqs = '';
+$coreqs = '';
+
+$query = "SELECT * FROM PrerequisiteAlternativesInformation WHERE CourseID='$courseID';";
+$result = mysql_query($query, $con);
+$firstPrereq = true;
+$firstCoreq = true;
+while ($row = mysql_fetch_array($result))
+{
+	if ($row['IsCorequisite'])
+	{
+		if (!$firstCoreq)
+		{
+			$coreqs .= ', ';
+		}
+		$coreqs .= $row['Prerequisite'];
+		$firstCoreq = false;
+	}
+	else
+	{
+		if (!$firstPrereq)
+		{
+			$prereqs .= ', ';
+		}
+		$prereqs .= $row['Prerequisite'];
+		$firstPrereq = false;
+	}
+}
 
 $query = "SELECT GROUP_CONCAT(CONCAT(C1.Dept, ' ', C1.CourseNumber) SEPARATOR ', ') AS Courses FROM Course AS C1, Course AS C2, Prerequisites WHERE Prerequisites.PrerequisiteID=C2.ID AND Prerequisites.CourseID=C1.ID AND C2.ID='$courseID' GROUP BY C2.ID;";
 $result = mysql_query($query, $con);
