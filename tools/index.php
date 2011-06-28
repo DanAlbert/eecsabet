@@ -20,6 +20,8 @@ if (!con)
 if (isset($_REQUEST['courseID']))
 {
 	print	' | <a href="clo/index.php?courseID=' . $_REQUEST['courseID'] . '">Modify Course Learning Outcomes</a> | ' .
+			'<a href="course-content/index.php?courseID=' . $_REQUEST['courseID'] . '">Modify Course Content</a> | ' .
+			'<a href="learning-resources/index.php?courseID=' . $_REQUEST['courseID'] . '">Modify Course Learning Resources</a> | ' .
 			'<a href="prerequisite/index.php?courseID=' . $_REQUEST['courseID'] . '">Modify Course Prerequisites</a> | ' .
 			'<a href="terms-offered/index.php?courseID=' . $_REQUEST['courseID'] . '">Change Terms this Course is Offered</a>';
 }
@@ -34,6 +36,11 @@ if (mysql_num_rows($result) == 0)
 else
 {
 	print ' | <a href="course-instance/index.php">Create a New Course Instance</a>';
+	if (isset($_REQUEST['courseID']))
+	{
+		print '<br /><a href="syllabus.php?courseID=' . $_REQUEST['courseID'] . "\">View this Course's ABET Syllabus</a>";
+	}
+	
 	print '<h1>Courses</h1>';
 	$first = true;
 	while ($row = mysql_fetch_array($result))

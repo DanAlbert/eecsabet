@@ -10,8 +10,10 @@ if (!con)
 
 $dept = mysql_real_escape_string($_POST['dept']);
 $courseNumberString = mysql_real_escape_string($_POST['courseNumber']);
+$courseTitle = mysql_real_escape_string($_POST['courseTitle']);
 $creditHours = mysql_real_escape_string($_POST['creditHours']);
 $description = mysql_real_escape_string($_POST['description']);
+$structure = mysql_real_escape_string($_POST['structure']);
 
 $courseNumber = '';
 foreach (str_split($courseNumberString) as $char)
@@ -25,8 +27,9 @@ foreach (str_split($courseNumberString) as $char)
 // Begin
 mysql_query('START TRANSACTION;', $con);
 
-// Insert CourseInstance
-$query = "INSERT INTO Course (Dept, CourseNumber, CreditHours, Description) VALUES ('$dept', '$courseNumber', '$creditHours', '$description');";
+// Insert Course
+$query = "	INSERT INTO Course (Dept, CourseNumber, Title, CreditHours, Description, Structure)
+			VALUES ('$dept', '$courseNumber', '$courseTitle', '$creditHours', '$description', '$structure');";
 
 if (mysql_query($query, $con) === false)
 {
@@ -51,6 +54,7 @@ if ($courseID == '')
 	return;
 }
 
+// TODO: trigger
 $query = "INSERT INTO TermsOffered (CourseID, Summer, Fall, Winter, Spring) VALUES ('$courseID', '0', '0', '0', '0');";
 if (mysql_query($query, $con) === false)
 {

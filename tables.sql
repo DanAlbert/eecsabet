@@ -106,3 +106,23 @@ CREATE TABLE TermState
 	State ENUM ('Sent', 'Approved', 'Ready', 'Finalized') NOT NULL DEFAULT 'Sent',
 	PRIMARY KEY (Term)
 ) ENGINE=InnoDB;
+
+CREATE TABLE CourseContent
+(
+	ID INT NOT NULL AUTO_INCREMENT,
+	CourseID INT NOT NULL,
+	Content VARCHAR(255) NOT NULL DEFAULT '',
+	PRIMARY KEY (ID),
+	UNIQUE (CourseID, Content),
+	FOREIGN KEY (CourseID) REFERENCES Course (ID)
+) ENGINE=InnoDB;
+
+CREATE TABLE LearningResources
+(
+	ID INT NOT NULL AUTO_INCREMENT,
+	CourseID INT NOT NULL,
+	Resource VARCHAR(255) NOT NULL DEFAULT '',
+	PRIMARY KEY (ID),
+	UNIQUE (CourseID, Resource),
+	FOREIGN KEY (CourseID) REFERENCES Course (ID)
+) ENGINE=InnoDB;

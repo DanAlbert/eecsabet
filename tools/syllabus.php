@@ -1,3 +1,9 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>EECS ABET</title>
+</head>
+<body>
 <?php
 
 require_once '../db.php';
@@ -9,6 +15,8 @@ if (!con)
 }
 
 $courseID = mysql_real_escape_string($_REQUEST['courseID']);
+
+print '<a href="index.php?courseID=' . $courseID . '">Return to Adminstration Page</a>';
 
 $query = "SELECT * FROM CourseInformation WHERE CourseID='$courseID';";
 $result = mysql_query($query, $con);
@@ -79,6 +87,14 @@ foreach ($instructors as $instructor)
 	$first = false;
 }
 
+$content = array();
+$query = "SELECT Content FROM CourseContent WHERE CourseID='$courseID';";
+$result = mysql_query($query, $con);
+while ($row = mysql_fetch_array($result))
+{
+	$content[] = $row['Content'];
+}
+
 $clos = array();
 
 $query = "SELECT * FROM CourseCLOInformation WHERE CourseID='$courseID' ORDER BY CLONumber;";
@@ -86,6 +102,14 @@ $result = mysql_query($query, $con);
 while ($row = mysql_fetch_array($result))
 {
 	$clos[] = $row['Description'] . ' (ABET Outcomes: ' . $row['Outcomes'] . ')';
+}
+
+$resources = array();
+$query = "SELECT Resource FROM LearningResources WHERE CourseID='$courseID';";
+$result = mysql_query($query, $con);
+while ($row = mysql_fetch_array($result))
+{
+	$resources[] = $row['Resource'];
 }
 
 print "<h1>$dept $num - $title</h1>";
@@ -119,6 +143,18 @@ print "<br />";
 print "<strong>Courses that require this as a prerequisite:</strong> $reqThis<br />";
 print "<strong>Structure:</strong> $structure<br />";
 print "<strong>Instructors:</strong> $instructorString<br />";
+
+if (sizeof($content) > 0)
+{
+	print "<h2>Course Content</h2>";
+	print "<ul>";
+	foreach ($content as $c)
+	{
+		print "<li>$c</li>";
+	}
+	print "</ul>";
+}
+
 print "<h2>Measurable Student Leaning Outcomes:</h2>";
 print "At the completion of the course, students will be able to...";
 print "<ol>";
@@ -128,4 +164,17 @@ foreach ($clos as $clo)
 }
 print "</ol>";
 
+if (sizeof($resources) > 0)
+{
+	print "<h2>Learning Resources</h2>";
+	print "<ul>";
+	foreach ($resources as $r)
+	{
+		print "<li>$r</li>";
+	}
+	print "</ul>";
+}
+
 ?>
+</body>
+</html>

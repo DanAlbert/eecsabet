@@ -50,6 +50,15 @@ tools/course/index.php:
 tools/course/create.php:
 	Creates a new Course.
 
+tools/course-content/index.php:
+	Forms for creating and deleting CourseContent.
+
+tools/course-content/create.php:
+	Creates new CourseContent.
+
+tools/course-content/remove.php:
+	Deletes CourseContent.
+
 tools/course-instance/index.php:
 	Form for creating a new CourseInstance.
 
@@ -61,6 +70,15 @@ tools/instructor/index.php:
 
 tools/instructor/create.php:
 	Creates a new Instructor.
+
+tools/learning-resources/index.php:
+	Forms for creating and deleting LearningResources.
+
+tools/learning-resources/create.php:
+	Creates new LearningResources.
+
+tools/learning-resources/remove.php:
+	Deletes LearningResources.
 
 tools/prerequisite/index.php:
 	Form for adding and removing prerequisite courses.
