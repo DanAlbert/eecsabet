@@ -30,7 +30,7 @@ tools/index.php:
 	Allows a user to access tools pages and select a course for use with the CLO and prerequisite tools.
 
 tools/syllabus.php:
-	Displays a course's ABET syllabus.
+	Contains functions for displaying a course's ABET syllabus.
 
 tools/clo/index.php:
 	Forms for adding new CLOs to a course, reordering existing CLOs for a course, and removing CLOs from a course.

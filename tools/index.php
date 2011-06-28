@@ -11,6 +11,7 @@
 <?php
 
 require_once '../db.php';
+require_once 'syllabus.php';
 	
 $con = dbConnect();
 if (!con)
@@ -36,10 +37,6 @@ if (mysql_num_rows($result) == 0)
 else
 {
 	print ' | <a href="course-instance/index.php">Create a New Course Instance</a>';
-	if (isset($_REQUEST['courseID']))
-	{
-		print '<br /><a href="syllabus.php?courseID=' . $_REQUEST['courseID'] . "\">View this Course's ABET Syllabus</a>";
-	}
 	
 	print '<h1>Courses</h1>';
 	$first = true;
@@ -59,6 +56,11 @@ else
 		}
 		$first = false;
 	}
+}
+
+if (isset($_REQUEST['courseID']))
+{
+	printABETSyllabus($_REQUEST['courseID']);
 }
 
 ?>
