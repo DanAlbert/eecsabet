@@ -60,6 +60,11 @@ else
 
 if (isset($_REQUEST['courseID']))
 {
+	print '<br /><br /><a href="syllabus/index.php?courseID=' . $_REQUEST['courseID'] . '">Download this course\'s ABET syllabus in LaTeX format</a>';
+}
+
+if (isset($_REQUEST['courseID']))
+{
 	printABETSyllabus($_REQUEST['courseID']);
 }
 

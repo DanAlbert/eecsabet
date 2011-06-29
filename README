@@ -26,6 +26,9 @@ tables.sql:
 views.sql:
 	MySQL view design. Not to be included in production web directory.
 
+tools/:
+	Contains administrative tools to manage the website and database.
+
 tools/index.php:
 	Allows a user to access tools pages and select a course for use with the CLO and prerequisite tools.
 
@@ -97,6 +100,9 @@ tools/state/nag.php:
 
 tools/state/ready.php:
 	Advances the TermState and all CourseInstances for the current term to Ready and sends out notification emails.
+
+tools/syllabus/index.php:
+	Writes a course's ABET syllabus to a file in LaTeX format and then redirects the user to download that file.
 
 tools/terms-offered/index.php:
 	Form for altering the terms a course is offered.
