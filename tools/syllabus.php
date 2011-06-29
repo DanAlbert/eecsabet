@@ -141,7 +141,7 @@ function printABETSyllabus($courseID)
 		$resources[] = $row['Resource'];
 	}
 
-	$query = "SELECT LastRevision FROM SyllabusTimestamp;";
+	$query = "SELECT LastRevision FROM SyllabusTimestamp WHERE CourseID='$courseID';";
 	$result = mysql_query($query, $con);
 	$row = mysql_fetch_array($result);
 	$syllabusDate = makeDateString($row['LastRevision']);

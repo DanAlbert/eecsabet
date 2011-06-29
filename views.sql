@@ -45,6 +45,7 @@ WHERE CourseInstance.CourseID=CLO.CourseID AND CourseInstance.ID=CourseInstanceC
 GROUP BY CourseInstance.ID, CLOOutcomes.CLOID
 ORDER BY CourseInstance.ID, CLO.CLONumber;
 
+DROP VIEW IF EXISTS PrerequisiteInformation;
 CREATE ALGORITHM=UNDEFINED VIEW PrerequisiteInformation AS
 SELECT	Prerequisites.CourseID,
 		Prerequisites.PrerequisiteID,
@@ -59,20 +60,21 @@ WHERE	C1.ID=Prerequisites.PrerequisiteID AND
 		Prerequisites.CourseID=PrerequisiteAlternatives.CourseID
 GROUP BY Prerequisites.PrerequisiteID, Prerequisites.CourseID
 UNION
-SELECT	Prerequisites.CourseID,
-		Prerequisites.PrerequisiteID,
-		Prerequisites.IsCorequisite,
+SELECT	P1.CourseID,
+		P1.PrerequisiteID,
+		P1.IsCorequisite,
 		Course.Dept,
 		Course.CourseNumber,
 		NULL
-FROM Prerequisites, Course
-WHERE	Course.ID=Prerequisites.PrerequisiteID AND
+FROM Prerequisites AS P1, Course
+WHERE	Course.ID=P1.PrerequisiteID AND
 		Course.ID NOT IN (	SELECT Prerequisites.PrerequisiteID
 							FROM Prerequisites, PrerequisiteAlternatives, Course AS C1, Course AS C2
 							WHERE	C1.ID=Prerequisites.PrerequisiteID AND
 									C1.ID=PrerequisiteAlternatives.PrerequisiteID AND
 									C2.ID=PrerequisiteAlternatives.AlternativeID AND
-									Prerequisites.CourseID=PrerequisiteAlternatives.CourseID)
+									Prerequisites.CourseID=PrerequisiteAlternatives.CourseID AND
+									P1.CourseID=Prerequisites.CourseID)
 ORDER BY Dept ASC, CourseNumber ASC;
 
 CREATE ALGORITHM=UNDEFINED VIEW CourseInformation AS

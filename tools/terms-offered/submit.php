@@ -40,6 +40,6 @@ mysql_query($query, $con);
 
 mysql_close($con);
 
-header('Location: index.php?courseID=' . $courseID);
+header('Location: ../index.php?courseID=' . $courseID);
 
 ?>
