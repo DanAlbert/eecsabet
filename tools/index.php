@@ -6,7 +6,7 @@
 </head>
 <body>
 
-<a href="course/index.php">Create a New Course</a> | <a href="instructor/index.php">Add an Instructor</a> | <a href="state/index.php">Manage Course States</a>
+<a href="course/index.php">Create a New Course</a> | <a href="instructor/index.php">Add an Instructor</a> | <a href="state/index.php">Manage Course States</a>  | <a href="syllabus/dump.php">Dump LaTeX Syllabi for All Current Courses</a>
 
 <?php
 
