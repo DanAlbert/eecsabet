@@ -2,17 +2,13 @@
 
 function dbConnect()
 {
-	/*$hostname = 'mysql.gingerhq.net';
-	$username = 'eecsabet';
-	$password = 'hP5fRjZbZ6KcL7MU';
-	$database = 'eecsabet';*/
-	
 	$hostname = 'engr-db.engr.oregonstate.edu:3307';
 	$username = 'eecsabet';
 	$password = 'OPtbHauT';
 	$database = 'eecsabet';
-
-	$con = mysql_connect($hostname, $username, $password);
+	
+	// 131072: CLIENT_MULTI_RESULTS
+	$con = mysql_connect($hostname, $username, $password, TRUE, 131072);
 	if (!$con)
 	{
 		mysql_close($con);

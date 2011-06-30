@@ -14,6 +14,9 @@ db.php:
 finalize.php:
 	Used to submit changes to all CLO metrics.
 
+procedures.sql:
+	MySQL stored procedures. Not to be included in production web directory.
+
 resend.php:
 	Resends links to staff members.
 

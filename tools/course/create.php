@@ -28,53 +28,23 @@ foreach (str_split($courseNumberString) as $char)
 mysql_query('START TRANSACTION;', $con);
 
 // Insert Course
-$query = "	INSERT INTO Course (Dept, CourseNumber, Title, CreditHours, Description, Structure)
-			VALUES ('$dept', '$courseNumber', '$courseTitle', '$creditHours', '$description', '$structure');";
-
-if (mysql_query($query, $con) === false)
-{
-	print mysql_error();
-	mysql_query('ROLLBACK;', $con);
-	mysql_close($con);
-	return;
-}
-
-// Retrieve new course ID
-$query = "SELECT ID FROM Course WHERE Dept='$dept' AND CourseNumber='$courseNumber';";
-
+$query = "CALL CreateCourse('$dept', '$courseNumber', '$courseTitle', '$creditHours', '$description', '$structure');";
 $result = mysql_query($query, $con);
 $row = mysql_fetch_array($result);
-$courseID = $row['ID'];
-
-if ($courseID == '')
+switch ($row[0])
 {
-	print mysql_error();
-	mysql_query('ROLLBACK;', $con);
+case -1:
+	print 'An error occured while creating the new course.';
 	mysql_close($con);
+	return;
+	
+case -2:
+	mysql_close($con);
+	print "$dept $courseNumber already exists in the database.";
 	return;
 }
 
-// TODO: trigger
-$query = "INSERT INTO TermsOffered (CourseID, Summer, Fall, Winter, Spring) VALUES ('$courseID', '0', '0', '0', '0');";
-if (mysql_query($query, $con) === false)
-{
-	print mysql_error();
-	mysql_query('ROLLBACK;', $con);
-	mysql_close($con);
-	return;
-}
-
-$query = "INSERT INTO SyllabusTimestamp (CourseID) VALUES ('$courseID');";
-if (mysql_query($query, $con) === false)
-{
-	print mysql_error();
-	mysql_query('ROLLBACK;', $con);
-	mysql_close($con);
-	return;
-}
-
-// Commit
-mysql_query('COMMIT;', $con);
+$courseID = $row[0];
 
 mysql_close($con);
 
