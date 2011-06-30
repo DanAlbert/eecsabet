@@ -139,3 +139,51 @@ BEGIN
 	UPDATE SyllabusTimestamp SET LastRevision=NOW() WHERE CourseID=OLD.CourseID;
 END$$
 DELIMITER ;
+
+-- CourseInstance
+DELIMITER $$
+DROP TRIGGER IF EXISTS ts_insert_CourseInstance$$
+CREATE TRIGGER ts_insert_CourseInstance AFTER INSERT ON CourseInstance FOR EACH ROW
+BEGIN
+	DECLARE termExists INT DEFAULT 0;
+	SELECT COUNT(*) INTO termExists FROM TermState WHERE TermState.TermID=NEW.TermID;
+	
+	IF termExists=0 THEN
+		INSERT INTO TermState (TermID) VALUES (NEW.TermID);
+	END IF;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+DROP TRIGGER IF EXISTS ts_update_CourseInstance$$
+CREATE TRIGGER ts_update_CourseInstance AFTER UPDATE ON CourseInstance FOR EACH ROW
+BEGIN
+	DECLARE termExists INT DEFAULT 0;
+	DECLARE numCourses INT DEFAULT 0;
+	
+	IF NEW.TermID<>OLD.TermID THEN
+		SELECT COUNT(*) INTO termExists FROM TermState WHERE TermState.TermID=NEW.TermID;
+		
+		IF termExists=0 THEN
+			INSERT INTO TermState (TermID) VALUES (NEW.TermID);
+		END IF;
+		
+		SELECT COUNT(*) INTO numCourses FROM CourseInstance WHERE TermID=OLD.TermID;
+		IF numCourses=0 THEN
+			DELETE FROM TermState WHERE TermID=OLD.TermID;
+		END IF;
+	END IF;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+DROP TRIGGER IF EXISTS ts_delete_CourseInstance$$
+CREATE TRIGGER ts_delete_CourseInstance AFTER DELETE ON CourseInstance FOR EACH ROW
+BEGIN
+	DECLARE numCourses INT DEFAULT 0;
+	SELECT COUNT(*) INTO numCourses FROM CourseInstance WHERE TermID=OLD.TermID;
+	IF numCourses=0 THEN
+		DELETE FROM TermState WHERE TermID=OLD.TermID;
+	END IF;
+END$$
+DELIMITER ;

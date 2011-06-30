@@ -64,20 +64,6 @@ while ($row = mysql_fetch_array($result))
 	}
 }
 
-$query = "SELECT * FROM TermStateInformation WHERE Term='$termID';";
-$result = mysql_query($query, $con);
-if (mysql_num_rows($result) == 0)
-{
-	$query = "INSERT INTO TermState (TermID, State) VALUES ('$termID', 'Approved');";
-	if (mysql_query($query, $con) === false)
-	{
-		print mysql_error();
-		mysql_query('ROLLBACK;', $con);
-		mysql_close($con);
-		return;
-	}
-}
-
 $query = "SELECT CONCAT(FirstName, ' ', LastName) AS Name FROM Instructor WHERE Email='$instructor';";
 $result = mysql_query($query, $con);
 $row = mysql_fetch_array($result);

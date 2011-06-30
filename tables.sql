@@ -114,7 +114,7 @@ CREATE TABLE TermsOffered
 CREATE TABLE TermState
 (
 	TermID INT(6) NOT NULL,
-	State ENUM ('Sent', 'Approved', 'Ready', 'Finalized') NOT NULL DEFAULT 'Sent',
+	State ENUM ('Sent', 'Approved', 'Ready', 'Finalized') NOT NULL DEFAULT 'Approved',
 	PRIMARY KEY (Term)
 ) ENGINE=InnoDB;
 
