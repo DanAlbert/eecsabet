@@ -64,6 +64,15 @@ if (mysql_query($query, $con) === false)
 	return;
 }
 
+$query = "INSERT INTO SyllabusTimestamp (CourseID) VALUES ('$courseID');";
+if (mysql_query($query, $con) === false)
+{
+	print mysql_error();
+	mysql_query('ROLLBACK;', $con);
+	mysql_close($con);
+	return;
+}
+
 // Commit
 mysql_query('COMMIT;', $con);
 
