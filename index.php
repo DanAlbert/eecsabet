@@ -150,6 +150,18 @@ if (isset($_REQUEST['error']))
 	case 12:
 		print 'CLOs and comments updated successfully.';
 		break;
+	
+	case 13:
+		print 'You must fill out all of the comment fields before approving.';
+		break;
+	
+	case 14:
+		print 'You must fill out all of the comment fields before finalizing.';
+		break;
+	
+	case 15:
+		print 'Unknown error.';
+		break;
 	}
 }
 
@@ -311,57 +323,60 @@ print '</tbody></table>';
 
 print '<h2>Comments</h2>';
 
-// CommentPrep //
-print "<h3>Did the students in this course seem to have the preparation you expected? Describe any problems you observed in their preparation:</h3>";
-print '<textarea name="prep" cols="60" rows="10"';
-if ($state != 'Ready')
+if (($state == 'Ready') OR ($state == 'Finalized'))
 {
-	print ' disabled="disabled"';
+	// CommentPrep //
+	print "<h3>Did the students in this course seem to have the preparation you expected? Describe any problems you observed in their preparation:</h3>";
+	print '<textarea name="prep" cols="60" rows="10"';
+	if ($state != 'Ready')
+	{
+		print ' disabled="disabled"';
+	}
+	print '>';
+
+	print $prep;
+
+	print '</textarea>';
+
+	// CommentPrepActions //
+	print "<h3>Actions taken (if any) in response to the students' level of preparation:</h3>";
+	print '<textarea name="prepActions" cols="60" rows="10"';
+	if ($state != 'Ready')
+	{
+		print ' disabled="disabled"';
+	}
+	print '>';
+
+	print $prepActions;
+
+	print '</textarea>';
+
+	// CommentChanges //
+	print "<h3>What other changes did you make compared with the last time this course was taught?</h3>";
+	print '<textarea name="changes" cols="60" rows="10"';
+	if ($state != 'Ready')
+	{
+		print ' disabled="disabled"';
+	}
+	print '>';
+
+	print $changes;
+
+	print '</textarea>';
+
+	// CommentCLO //
+	print "<h3>Are there any other changes you recommend for the way that the CLOs are covered and/or assessed?</h3>";
+	print '<textarea name="clo" cols="60" rows="10"';
+	if ($state != 'Ready')
+	{
+		print ' disabled="disabled"';
+	}
+	print '>';
+
+	print $clo;
+
+	print '</textarea>';
 }
-print '>';
-
-print $prep;
-
-print '</textarea>';
-
-// CommentPrepActions //
-print "<h3>Actions taken (if any) in response to the students' level of preparation:</h3>";
-print '<textarea name="prepActions" cols="60" rows="10"';
-if ($state != 'Ready')
-{
-	print ' disabled="disabled"';
-}
-print '>';
-
-print $prepActions;
-
-print '</textarea>';
-
-// CommentChanges //
-print "<h3>What other changes did you make compared with the last time this course was taught?</h3>";
-print '<textarea name="changes" cols="60" rows="10"';
-if ($state != 'Ready')
-{
-	print ' disabled="disabled"';
-}
-print '>';
-
-print $changes;
-
-print '</textarea>';
-
-// CommentCLO //
-print "<h3>Are there any other changes you recommend for the way that the CLOs are covered and/or assessed?</h3>";
-print '<textarea name="clo" cols="60" rows="10"';
-if ($state != 'Ready')
-{
-	print ' disabled="disabled"';
-}
-print '>';
-
-print $clo;
-
-print '</textarea>';
 
 // CommentRecs //
 print "<h3>Do you recommend any other changes for this course?</h3>";

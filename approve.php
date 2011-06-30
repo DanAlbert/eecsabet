@@ -11,11 +11,6 @@ if (!con)
 $courseInstanceID = mysql_real_escape_string($_REQUEST['courseInstanceID']);
 $assessed = $_POST['assessed'];
 $satisfactory = $_POST['satisfactory'];
-
-$prep = mysql_real_escape_string($_POST['prep']);
-$prepActions = mysql_real_escape_string($_POST['prepActions']);
-$changes = mysql_real_escape_string($_POST['changes']);
-$clo = mysql_real_escape_string($_POST['clo']);
 $recs = mysql_real_escape_string($_POST['recs']);
 
 if (sizeof($assessed) == 0)
@@ -24,21 +19,35 @@ if (sizeof($assessed) == 0)
 	return;
 }
 
-mysql_query('BEGIN TRANSACTION;', $con);
+mysql_query('START TRANSACTION;', $con);
 
 $size = sizeof($assessed);
 $current = null;
 for ($i = 0; $i < $size; $i++)
 {
 	$current = current($assessed);
-	if (($assessed[key($assessed)] == '') OR ($assessed[key($assessed)] == null))
+	
+	$cleanedAssessed = mysql_real_escape_string($assessed[key($assessed)]);
+	$satisfactoryDecimalPos = strpos($satisfactory[key($assessed)], '.');
+	
+	$cleanedSatisfactory = '';
+	if ($satisfactoryDecimalPos !== false)
+	{
+		$cleanedSatisfactory = preg_replace('/\D/', '', substr($satisfactory[key($assessed)], 0, $satisfactoryDecimalPos));
+	}
+	else
+	{
+		$cleanedSatisfactory = preg_replace('/\D/', '', $satisfactory[key($assessed)]);
+	}
+	
+	if (($cleanedAssessed == '') OR ($cleanedAssessed == null))
 	{
 		mysql_query('ROLLBACK;', $con);
 		mysql_close($con);
-		switch (submitComments($courseInstanceID, $prep, $prepActions, $changes, $clo, $recs))
+		switch (submitComments($courseInstanceID, $recs))
 		{
 		case 0:
-			onError($courseInstanceID, 11);
+			onError($courseInstanceID, 13);
 			break;
 			
 		case 1:
@@ -52,11 +61,11 @@ for ($i = 0; $i < $size; $i++)
 		return;
 	}
 
-	if ($satisfactory[key($assessed)] == '')
+	if ($cleanedSatisfactory == '')
 	{
 		mysql_query('ROLLBACK;', $con);
 		mysql_close($con);
-		switch (submitComments($courseInstanceID, $prep, $prepActions, $changes, $clo, $recs))
+		switch (submitComments($courseInstanceID, $recs))
 		{
 		case 0:
 			onError($courseInstanceID, 11);
@@ -72,8 +81,12 @@ for ($i = 0; $i < $size; $i++)
 		}
 		return;
 	}
-
-	$query = "UPDATE CourseInstanceCLO SET Assessed='" . $assessed[key($assessed)] . "', SatisfactoryScore='" . $satisfactory[key($assessed)] . "' WHERE CLOID='" . key($assessed) . "' AND CourseInstanceID='$courseInstanceID';";
+	
+	$cloID = key($assessed);
+	
+	$query =	"UPDATE CourseInstanceCLO SET Assessed='$cleanedAssessed', " .
+				"SatisfactoryScore='$cleanedSatisfactory' " .
+				"WHERE CLOID='$cloID' AND CourseInstanceID='$courseInstanceID';";
 	
 	mysql_query($query, $con);
 	if (mysql_errno() != 0)
@@ -100,14 +113,14 @@ if (mysql_errno() != 0)
 mysql_query('COMMIT;', $con);
 mysql_close($con);
 
-switch (submitComments($courseInstanceID, $prep, $prepActions, $changes, $clo, $recs))
+switch (submitComments($courseInstanceID, $recs))
 {
 case 0:
 	onError($courseInstanceID, 12);
 	break;
 	
 case 1:
-	onError($courseInstanceID, 0);
+	onError($courseInstanceID, 13);
 	break;
 	
 case 2:
@@ -117,7 +130,7 @@ case 2:
 
 return;
 
-function submitComments($courseInstanceID, $prep, $prepActions, $changes, $clo, $recs)
+function submitComments($courseInstanceID, $recs)
 {
 	$con = dbConnect();
 	if (!con)
@@ -125,18 +138,12 @@ function submitComments($courseInstanceID, $prep, $prepActions, $changes, $clo, 
 		die('Unable to connect to database: ' . mysql_error());
 	}
 	
-	if (($prep == '') AND ($prepActions == '') AND ($changes == '') AND ($clo == '') AND ($recs == ''))
+	if ($recs == '')
 	{
 		return 1;
 	}
 	
-	$query =	"UPDATE CourseInstance SET " .
-				"CommentPrep='$prep', " .
-				"CommentPrepActions='$prepActions', " .
-				"CommentChanges='$changes', " .
-				"CommentCLO='$clo', " .
-				"CommentRecs='$recs' " .
-				"WHERE ID='$courseInstanceID';";
+	$query = "UPDATE CourseInstance SET CommentRecs='$recs' WHERE ID='$courseInstanceID';";
 	mysql_query($query, $con);
 	if (mysql_errno() != 0)
 	{

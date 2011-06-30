@@ -27,14 +27,62 @@ if (sizeof($assessed) == 0)
 	return;
 }
 
-mysql_query('BEGIN TRANSACTION;', $con);
+mysql_query('START TRANSACTION;', $con);
 
 $size = sizeof($assessed);
 $current = null;
 for ($i = 0; $i < $size; $i++)
 {
 	$current = current($assessed);
-	if (($assessed[key($assessed)] == '') OR ($assessed[key($assessed)] == null))
+	
+	$cleanedAssessed = mysql_real_escape_string($assessed[key($assessed)]);
+	
+	$meanDecimalPos = strpos($mean[key($assessed)], '.');
+	$medianDecimalPos = strpos($median[key($assessed)], '.');
+	$highDecimalPos = strpos($high[key($assessed)], '.');
+	$satisfactoryDecimalPos = strpos($satisfactory[key($assessed)], '.');
+	
+	$cleanedMean = '';
+	if ($meanDecimalPos !== false)
+	{
+		$cleanedMean = preg_replace('/\D/', '', substr($mean[key($assessed)], 0, $meanDecimalPos));
+	}
+	else
+	{
+		$cleanedMean = preg_replace('/\D/', '', $mean[key($assessed)]);
+	}
+	
+	$cleanedMedian = '';
+	if ($medianDecimalPos !== false)
+	{
+		$cleanedMedian = preg_replace('/\D/', '', substr($median[key($assessed)], 0, $medianDecimalPos));
+	}
+	else
+	{
+		$cleanedMedian = preg_replace('/\D/', '', $median[key($assessed)]);
+	}
+	
+	$cleanedHigh = '';
+	if ($highDecimalPos !== false)
+	{
+		$cleanedHigh = preg_replace('/\D/', '', substr($high[key($assessed)], 0, $highDecimalPos));
+	}
+	else
+	{
+		$cleanedHigh = preg_replace('/\D/', '', $high[key($assessed)]);
+	}
+	
+	$cleanedSatisfactory = '';
+	if ($satisfactoryDecimalPos !== false)
+	{
+		$cleanedSatisfactory = preg_replace('/\D/', '', substr($satisfactory[key($assessed)], 0, $satisfactoryDecimalPos));
+	}
+	else
+	{
+		$cleanedSatisfactory = preg_replace('/\D/', '', $satisfactory[key($assessed)]);
+	}
+	
+	if (($cleanedAssessed == '') OR ($cleanedAssessed == null))
 	{
 		mysql_query('ROLLBACK;', $con);
 		mysql_close($con);
@@ -55,7 +103,7 @@ for ($i = 0; $i < $size; $i++)
 		return;
 	}
 
-	if ($mean[key($assessed)] == '')
+	if ($cleanedMean == '')
 	{
 		mysql_query('ROLLBACK;', $con);
 		mysql_close($con);
@@ -76,7 +124,7 @@ for ($i = 0; $i < $size; $i++)
 		return;
 	}
 
-	if ($median[key($assessed)] == '')
+	if ($cleanedMedian == '')
 	{
 		mysql_query('ROLLBACK;', $con);
 		mysql_close($con);
@@ -97,7 +145,7 @@ for ($i = 0; $i < $size; $i++)
 		return;
 	}
 
-	if ($high[key($assessed)] == '')
+	if ($cleanedHigh == '')
 	{
 		mysql_query('ROLLBACK;', $con);
 		mysql_close($con);
@@ -118,7 +166,7 @@ for ($i = 0; $i < $size; $i++)
 		return;
 	}
 
-	if ($satisfactory[key($assessed)] == '')
+	if ($cleanedSatisfactory == '')
 	{
 		mysql_query('ROLLBACK;', $con);
 		mysql_close($con);
@@ -139,12 +187,14 @@ for ($i = 0; $i < $size; $i++)
 		return;
 	}
 	
-	$query =	"UPDATE CourseInstanceCLO SET Assessed='" . $assessed[key($assessed)] .
-				"', MeanScore='" . $mean[key($assessed)] .
-				"', MedianScore='" . $median[key($assessed)] .
-				"', HighScore='" . $high[key($assessed)] .
-				"', SatisfactoryScore='" . $satisfactory[key($assessed)] .
-				"' WHERE CLOID='" . key($assessed) . "' AND CourseInstanceID='$courseInstanceID';";
+	$cloID = key($assessed);
+	
+	$query =	"UPDATE CourseInstanceCLO SET Assessed='$cleanedAssessed', " .
+				"MeanScore='$cleanedMean', " .
+				"MedianScore='$cleanedMedian', " .
+				"HighScore='$cleanedHigh', " .
+				"SatisfactoryScore='$cleanedSatisfactory' " .
+				"WHERE CLOID='$cloID' AND CourseInstanceID='$courseInstanceID';";
 	
 	mysql_query($query, $con);
 	if (mysql_errno() != 0)
@@ -168,35 +218,36 @@ if (mysql_errno() != 0)
 	return;
 }
 
-mysql_query('COMMIT;', $con);
-mysql_close($con);
-
-switch (submitComments($courseInstanceID, $prep, $prepActions, $changes, $clo, $recs))
+switch (submitComments($con, $courseInstanceID, $prep, $prepActions, $changes, $clo, $recs))
 {
 case 0:
+	mysql_query('COMMIT;', $con);
+	mysql_close($con);
 	onError($courseInstanceID, 12);
 	break;
 	
 case 1:
-	onError($courseInstanceID, 0);
+	mysql_query('ROLLBACK;', $con);
+	mysql_close($con);
+	onError($courseInstanceID, 14);
 	break;
 	
 case 2:
+	mysql_query('ROLLBACK;', $con);
+	mysql_close($con);
 	onError($courseInstanceID, 5);
+	break;
+	
+default:
+	mysql_query('ROLLBACK;', $con);
+	mysql_close($con);
+	onError($courseInstanceID, 15);
 	break;
 }
 
-return;
-
-function submitComments($courseInstanceID, $prep, $prepActions, $changes, $clo, $recs)
+function submitComments($con, $courseInstanceID, $prep, $prepActions, $changes, $clo, $recs)
 {
-	$con = dbConnect();
-	if (!con)
-	{
-		die('Unable to connect to database: ' . mysql_error());
-	}
-	
-	if (($prep == '') AND ($prepActions == '') AND ($changes == '') AND ($clo == '') AND ($recs == ''))
+	if (($prep == '') OR ($prepActions == '') OR ($changes == '') OR ($clo == '') OR ($recs == ''))
 	{
 		return 1;
 	}
@@ -211,11 +262,9 @@ function submitComments($courseInstanceID, $prep, $prepActions, $changes, $clo, 
 	mysql_query($query, $con);
 	if (mysql_errno() != 0)
 	{
-		mysql_close($con);
 		return 2;
 	}
-
-	mysql_close($con);
+	
 	return 0;
 }
 
