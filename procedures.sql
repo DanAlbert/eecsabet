@@ -44,7 +44,6 @@ BEGIN
 	SELECT ID INTO courseID FROM Course WHERE Dept=pDept AND CourseNumber=pCourseNumber ORDER BY ID ASC;
 		
 	INSERT INTO TermsOffered (CourseID, Summer, Fall, Winter, Spring) VALUES (courseID, '0', '0', '0', '0');
-	INSERT INTO SyllabusTimestamp (CourseID) VALUES (courseID);
 
 	COMMIT;
 	SELECT courseID;

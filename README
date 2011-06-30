@@ -26,6 +26,9 @@ style.css:
 tables.sql:
 	MySQL table design. Not to be included in production web directory.
 
+triggers.sql:
+	MySQL trigger design. Not to be included in production web directory.
+
 views.sql:
 	MySQL view design. Not to be included in production web directory.
 
