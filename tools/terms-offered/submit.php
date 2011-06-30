@@ -35,11 +35,20 @@ if ($_REQUEST['spring'] == 'on')
 	$spring = 1;
 }
 
-$query = "UPDATE TermsOffered SET Summer='$summer', Fall='$fall', Winter='$winter', Spring='$spring' WHERE CourseID='$courseID';";
-mysql_query($query, $con);
-
-mysql_close($con);
-
-header('Location: ../index.php?courseID=' . $courseID);
+$query = "CALL UpdateTermsOffered('$courseID', '$summer', '$fall', '$winter', '$spring');";
+$result = mysql_query($query, $con);
+$row = mysql_fetch_array($result);
+switch ($row[0])
+{
+case 1:
+	mysql_close($con);
+	header('Location: ../index.php?courseID=' . $courseID);
+	break;
+	
+default:
+	print 'An error occured while updating the terms this course is offered.';
+	mysql_close($con);
+	return;
+}
 
 ?>

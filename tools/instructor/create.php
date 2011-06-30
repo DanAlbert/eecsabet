@@ -15,17 +15,25 @@ $email = mysql_real_escape_string($_POST['email']);
 $termID = $year . $term;
 
 // Insert Instructor
-$query = "INSERT INTO Instructor (FirstName, LastName, Email) VALUES ('$firstName', '$lastName', '$email');";
-
-if (mysql_query($query, $con) === false)
+$query = "CALL CreateInstructor('$firstName', '$lastName', '$email');";
+$result = mysql_query($query, $con);
+$row = mysql_fetch_array($result);
+switch ($row[0])
 {
-	print mysql_error();
+case 1:
+	mysql_close($con);
+	header('Location: ../index.php');
+	break;
+
+case -2:
+	mysql_close($con);
+	print "$email already exists in the database.";
+	return;
+	
+default:
+	print 'An error occured while creating the new instructor.';
 	mysql_close($con);
 	return;
 }
-
-mysql_close($con);
-
-header('Location: ../index.php');
 
 ?>
