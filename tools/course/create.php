@@ -24,9 +24,6 @@ foreach (str_split($courseNumberString) as $char)
 	}
 }
 
-// Begin
-mysql_query('START TRANSACTION;', $con);
-
 // Insert Course
 $query = "CALL CreateCourse('$dept', '$courseNumber', '$courseTitle', '$creditHours', '$description', '$structure');";
 $result = mysql_query($query, $con);
