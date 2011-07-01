@@ -148,21 +148,12 @@ CREATE PROCEDURE CreateCourseInstance(	IN pCourseID INT,
 										IN pInstructor VARCHAR(255),
 										IN pTermID INT)
 BEGIN
-	DECLARE instanceID INT DEFAULT 0;
 	DECLARE EXIT HANDLER FOR SQLEXCEPTION, SQLWARNING
 	BEGIN
-		ROLLBACK;
 		SELECT -1;
 	END;
 	
-	START TRANSACTION;
-	
 	INSERT INTO CourseInstance (CourseID, Instructor, TermID) VALUES (pCourseID, pInstructor, pTermID);
-	
-	-- Implement as TRIGGER ci_insert_CourseInstance AFTER INSERT ON CourseInstance
-	-- SELECT CLOID FROM MasterCLO WHERE CourseID='$course';
-	-- INSERT INTO CourseInstanceCLO (CLOID, CourseInstanceID) VALUES ('" . $row['CLOID'] . "', '$courseInstance');
-	
-	COMMIT;
+	SELECT 1;
 END$$
 DELIMITER ;

@@ -145,12 +145,17 @@ DELIMITER $$
 DROP TRIGGER IF EXISTS ts_insert_CourseInstance$$
 CREATE TRIGGER ts_insert_CourseInstance AFTER INSERT ON CourseInstance FOR EACH ROW
 BEGIN
+	-- TermState junk
 	DECLARE termExists INT DEFAULT 0;
 	SELECT COUNT(*) INTO termExists FROM TermState WHERE TermState.TermID=NEW.TermID;
 	
 	IF termExists=0 THEN
 		INSERT INTO TermState (TermID) VALUES (NEW.TermID);
 	END IF;
+	
+	-- CLO junk
+	INSERT INTO CourseInstanceCLO (CLOID, CourseInstanceID)
+		SELECT CLOID, NEW.ID FROM MasterCLO WHERE CourseID=NEW.CourseID;
 END$$
 DELIMITER ;
 

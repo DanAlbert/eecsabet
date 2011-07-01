@@ -70,7 +70,7 @@ WHERE	C2.ID = (	SELECT C3.ID
 												C3.CourseID=C2.CourseID AND
 												C2.CourseID=C1.CourseID AND
 												C4.ID<>C1.ID
-										GROUP BY C4.CourseID)) AND
+										GROUP BY C4.CourseID) LIMIT 1) AND
 		C2.CourseID=CLO.CourseID AND
 		C2.ID=CourseInstanceCLO.CourseInstanceID AND
 		CourseInstanceCLO.CLOID=CLO.ID AND
