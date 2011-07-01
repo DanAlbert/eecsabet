@@ -1,3 +1,4 @@
+DROP VIEW IF EXISTS CourseInstanceInformation;
 CREATE ALGORITHM=UNDEFINED VIEW CourseInstanceInformation AS
 SELECT	CourseInstance.ID AS CourseInstanceID,
 		Course.Dept,
@@ -18,6 +19,7 @@ FROM Course, CourseInstance, Instructor
 WHERE Course.ID = CourseInstance.CourseID
 AND Instructor.Email = CourseInstance.Instructor;
 
+DROP VIEW IF EXISTS CourseCLOInformation;
 CREATE ALGORITHM=UNDEFINED VIEW CourseCLOInformation AS
 SELECT	MasterCLO.CourseID AS CourseID,
 		MasterCLO.CLOID AS CLOID,
@@ -29,6 +31,7 @@ WHERE MasterCLO.CourseID=CLO.CourseID AND MasterCLO.CLOID=CLO.ID AND CLOOutcomes
 GROUP BY MasterCLO.CourseID, CLOOutcomes.CLOID
 ORDER BY MasterCLO.CourseID, CLO.CLONumber;
 
+DROP VIEW IF EXISTS CourseInstanceCLOInformation;
 CREATE ALGORITHM=UNDEFINED VIEW CourseInstanceCLOInformation AS
 SELECT	CourseInstance.ID AS CourseInstanceID,
 		CLO.ID AS CLOID,
@@ -41,9 +44,62 @@ SELECT	CourseInstance.ID AS CourseInstanceID,
 		CourseInstanceCLO.HighScore,
 		CourseInstanceCLO.SatisfactoryScore
 FROM CourseInstance, CourseInstanceCLO, CLO, CLOOutcomes
-WHERE CourseInstance.CourseID=CLO.CourseID AND CourseInstance.ID=CourseInstanceCLO.CourseInstanceID AND CourseInstanceCLO.CLOID=CLO.ID AND CLOOutcomes.CLOID=CLO.ID
+WHERE	CourseInstance.CourseID=CLO.CourseID AND
+		CourseInstance.ID=CourseInstanceCLO.CourseInstanceID AND
+		CourseInstanceCLO.CLOID=CLO.ID AND
+		CLOOutcomes.CLOID=CLO.ID AND
+		CourseInstance.State<>'Sent'
 GROUP BY CourseInstance.ID, CLOOutcomes.CLOID
-ORDER BY CourseInstance.ID, CLO.CLONumber;
+UNION
+SELECT	C1.ID AS CourseInstanceID,
+		CLO.ID AS CLOID,
+		CLO.CLONumber,
+		CLO.Description,
+		GROUP_CONCAT(DISTINCT CLOOutcomes.ABETOutcome ORDER BY CLOOutcomes.ABETOutcome ASC SEPARATOR ', ') AS Outcomes,
+		CourseInstanceCLO.Assessed,
+		CourseInstanceCLO.MeanScore,
+		CourseInstanceCLO.MedianScore,
+		CourseInstanceCLO.HighScore,
+		CourseInstanceCLO.SatisfactoryScore
+FROM CourseInstance AS C1, CourseInstance AS C2, CourseInstanceCLO, CLO, CLOOutcomes
+WHERE	C2.ID = (	SELECT C3.ID
+					FROM CourseInstance AS C3
+					WHERE C3.TermID=(	SELECT MAX(C4.TermID)
+										FROM CourseInstance AS C4
+										WHERE	C4.CourseID=C3.CourseID AND
+												C3.CourseID=C2.CourseID AND
+												C2.CourseID=C1.CourseID AND
+												C4.ID<>C1.ID
+										GROUP BY C4.CourseID)) AND
+		C2.CourseID=CLO.CourseID AND
+		C2.ID=CourseInstanceCLO.CourseInstanceID AND
+		CourseInstanceCLO.CLOID=CLO.ID AND
+		CLOOutcomes.CLOID=CLO.ID AND
+		C1.State='Sent'
+GROUP BY C1.ID, CLOOutcomes.CLOID
+UNION
+SELECT	C1.ID AS CourseInstanceID,
+		CLO.ID AS CLOID,
+		CLO.CLONumber,
+		CLO.Description,
+		GROUP_CONCAT(DISTINCT CLOOutcomes.ABETOutcome ORDER BY CLOOutcomes.ABETOutcome ASC SEPARATOR ', ') AS Outcomes,
+		NULL,
+		NULL,
+		NULL,
+		NULL,
+		NULL
+FROM CourseInstance AS C1, CourseInstanceCLO, CLO, CLOOutcomes
+WHERE	1 = (	SELECT COUNT(*)
+				FROM CourseInstance AS C2
+				WHERE C2.CourseID=C1.CourseID
+				GROUP BY C2.CourseID) AND
+		C1.CourseID=CLO.CourseID AND
+		C1.ID=CourseInstanceCLO.CourseInstanceID AND
+		CourseInstanceCLO.CLOID=CLO.ID AND
+		CLOOutcomes.CLOID=CLO.ID AND
+		C1.State='Sent'
+GROUP BY C1.ID, CLOOutcomes.CLOID
+ORDER BY CourseInstanceID, CLONumber;
 
 DROP VIEW IF EXISTS PrerequisiteInformation;
 CREATE ALGORITHM=UNDEFINED VIEW PrerequisiteInformation AS
@@ -77,6 +133,7 @@ WHERE	Course.ID=P1.PrerequisiteID AND
 									P1.CourseID=Prerequisites.CourseID)
 ORDER BY Dept ASC, CourseNumber ASC;
 
+DROP VIEW IF EXISTS CourseInformation;
 CREATE ALGORITHM=UNDEFINED VIEW CourseInformation AS
 SELECT	C1.ID AS CourseID,
 		C1.Dept,
@@ -152,6 +209,7 @@ FROM Course AS C1 LEFT OUTER JOIN Prerequisites AS P1 ON P1.CourseID=C1.ID LEFT 
 WHERE C1.ID=TermsOffered.CourseID AND P1.PrerequisiteID IS NULL AND P2.PrerequisiteID IS NULL
 ORDER BY Dept, CourseNumber;
 
+DROP VIEW IF EXISTS NaggingInformation;
 CREATE ALGORITHM=UNDEFINED VIEW NaggingInformation AS
 SELECT DISTINCT	Instructor.FirstName,
 				Instructor.LastName,
@@ -166,18 +224,21 @@ WHERE	CourseInstance.TermID=TermState.TermID AND
 		Course.ID=CourseInstance.CourseID AND
 		Instructor.Email=CourseInstance.Instructor;
 
+DROP VIEW IF EXISTS TermStateInformation;
 CREATE ALGORITHM=UNDEFINED VIEW TermStateInformation AS
 SELECT	CourseInstance.TermID AS Term,
 		TermState.State AS State
 FROM CourseInstance, TermState
 WHERE CourseInstance.TermID=TermState.TermID;
 
+DROP VIEW IF EXISTS CurrentTermStateInformation;
 CREATE ALGORITHM=UNDEFINED VIEW CurrentTermStateInformation AS
 SELECT	Term AS CurrentTerm,
 		State AS CurrentState
 FROM TermStateInformation
 WHERE CurrentTerm=(SELECT MAX(TermID) FROM TermState);
 
+DROP VIEW IF EXISTS PrerequisiteAlternativesInformation;
 CREATE ALGORITHM=UNDEFINED VIEW PrerequisiteAlternativesInformation AS
 SELECT DISTINCT	C1.ID AS CourseID,
 				GROUP_CONCAT(DISTINCT CONCAT(C2.Dept, ' ', C2.CourseNumber) SEPARATOR ' or ') AS Prerequisite,

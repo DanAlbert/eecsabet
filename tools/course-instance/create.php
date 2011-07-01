@@ -64,6 +64,9 @@ while ($row = mysql_fetch_array($result))
 	}
 }
 
+// Commit
+mysql_query('COMMIT;', $con);
+
 $query = "SELECT CONCAT(FirstName, ' ', LastName) AS Name FROM Instructor WHERE Email='$instructor';";
 $result = mysql_query($query, $con);
 $row = mysql_fetch_array($result);
@@ -74,6 +77,8 @@ $result = mysql_query($query, $con);
 $row = mysql_fetch_array($result);
 $courseName = $row['Course'];
 
+mysql_close($con);
+
 $pageURL = 'http://web.engr.oregonstate.edu/~albertd/eecsabet/index.php';
 
 $to = $instructor;
@@ -82,21 +87,25 @@ $body = "You have a new course which you need to provide ABET accredidation info
 
 $headers  = 'MIME-Version: 1.0' . "\r\n";
 $headers .= 'Content-type: text/html; charset=iso-8859-1' . "\r\n";
-$headers .= 'From: eecsabet@eecs.orst.edu' . "\r\n";
-$headers .= 'Reply-To: eecsabet@eecs.orst.edu' . "\r\n";
+$headers .= 'From: eecsabet@eecs.oregonstate.edu' . "\r\n";
+$headers .= 'Reply-To: eecsabet@eecs.oregonstate.edu' . "\r\n";
 $headers .= 'X-Mailer: PHP/' . phpversion();
 
 $message = '<html><head><title>Nagging</title><head><body>' . $instructorName . ',<br /><br />' . $body . '<br />';
 $message .= '<a href="' . $pageURL . '?courseInstanceID=' . $courseInstance . '">' . $courseName . '</a><br />';
 $message .= '<br />EECS ABET Mailer';
 
-mail($to, $subject, $message, $headers);
-
-// Commit
-mysql_query('COMMIT;', $con);
-
-mysql_close($con);
-
-header('Location: ../index.php');
+if (mail($to, $subject, $message, $headers) === true)
+{
+	header('Location: ../index.php');
+}
+else
+{
+	print "Could not send mail.<br />";
+	print "To: $to<br />";
+	print "Subject: $subject<br />";
+	print "Headers: $headers<br />";
+	print "Body: $message<br />";;
+}
 
 ?>
