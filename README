@@ -32,6 +32,12 @@ triggers.sql:
 views.sql:
 	MySQL view design. Not to be included in production web directory.
 
+cron/:
+	Contains cron scripts for periodical emails and state changes.
+
+cron/nag.pl:
+	Checks for instructors which have not filled out their forms and sends nagging emails.
+
 tools/:
 	Contains administrative tools to manage the website and database.
 
