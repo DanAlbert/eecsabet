@@ -38,6 +38,9 @@ cron/:
 cron/nag.pl:
 	Checks for instructors which have not filled out their forms and sends nagging emails.
 
+cron/state.pl:
+	Checks the current week of the year, updates the term state as necessary and sends out emails.
+
 tools/:
 	Contains administrative tools to manage the website and database.
 

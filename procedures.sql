@@ -157,3 +157,45 @@ BEGIN
 	SELECT 1;
 END$$
 DELIMITER ;
+
+DELIMITER $$
+DROP PROCEDURE IF EXISTS AllowFinalize$$
+CREATE PROCEDURE AllowFinalize(IN pTermID INT)
+BEGIN
+	DECLARE EXIT HANDLER FOR SQLEXCEPTION, SQLWARNING
+	BEGIN
+		SELECT -1;
+	END;
+	
+	UPDATE TermState SET State='Finalized' WHERE TermID=pTermID;
+	SELECT 1;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+DROP PROCEDURE IF EXISTS GetInstructorsByTerm$$
+CREATE PROCEDURE GetInstructorsByTerm(IN pTermID INT)
+BEGIN
+	SELECT DISTINCT	CONCAT (Instructor.FirstName, ' ', Instructor.LastName) AS Name,
+							Instructor.Email
+	FROM CourseInstance, Instructor
+	WHERE	CourseInstance.TermID=pTermID AND
+			Instructor.Email=CourseInstance.Instructor;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+DROP PROCEDURE IF EXISTS GetUnfinishedCourses$$
+CREATE PROCEDURE GetUnfinishedCourses(	IN pInstructor VARCHAR(255),
+										IN pTermID INT)
+BEGIN
+	SELECT DISTINCT	CONCAT(	Course.Dept, ' ', Course.CourseNumber) AS Course,
+							CourseInstance.ID AS InstanceID
+	FROM CourseInstance, TermState, Course, Instructor
+	WHERE	CourseInstance.TermID=TermState.TermID AND
+			CourseInstance.State<>TermState.State AND
+			TermState.TermID=pTermID AND
+			Course.ID=CourseInstance.CourseID AND
+			Instructor.Email=pInstructor;
+END$$
+DELIMITER ;

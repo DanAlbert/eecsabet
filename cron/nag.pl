@@ -45,7 +45,7 @@ while (my @row = $sth->fetchrow_array())
 	}
 	print MAIL '<br />EECS ABET Mailer';
 	
-	close(MAIL)
+	close(MAIL);
 }
 
 $con->disconnect() or warn "$con->errstr\n";

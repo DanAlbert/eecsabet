@@ -192,3 +192,16 @@ BEGIN
 	END IF;
 END$$
 DELIMITER ;
+
+-- TermState
+DELIMITER $$
+DROP TRIGGER IF EXISTS ci_update_TermState$$
+CREATE TRIGGER ci_update_TermState AFTER UPDATE ON TermState FOR EACH ROW
+BEGIN
+	IF NEW.State='Finalized' THEN
+		UPDATE CourseInstance SET State='Ready' WHERE TermID=NEW.TermID;
+	ELSEIF NEW.State='Approved' THEN
+		UPDATE CourseInstance SET State='Sent' WHERE TermID=NEW.TermID;
+	END IF;
+END$$
+DELIMITER ;

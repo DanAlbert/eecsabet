@@ -10,33 +10,36 @@ if (!$con)
 
 $termID = $_POST['TermID'];
 
-mysql_query('BEGIN TRANSACTION;', $con);
-
-$query = "UPDATE TermState SET State='Finalized' WHERE TermID='$termID'";
-if (!mysql_query($query, $con))
+$query = "CALL AllowFinalize('$termID')";
+$result = mysql_query($query, $con);
+$row = mysql_fetch_array($result);
+switch ($row[0])
 {
-	mysql_query('ROLLBACK;', $con);
+case -1:
+	print 'An error occured while removing the course content.';
 	mysql_close($con);
-	die("Could not update TermState: " . mysql_error());
+	return;
+	
+case 1:
+	break;
+	
+default:
+	print $query . ': ERROR (' . mysql_errno() . ')<br />';
+	break;
 }
-
-$query = "UPDATE CourseInstance SET State='Ready' WHERE TermID='$termID'";
-if (!mysql_query($query, $con))
-{
-	mysql_query('ROLLBACK;', $con);
-	mysql_close($con);
-	die("Could not update CourseInstance: " . mysql_error());
-}
-
-mysql_query('COMMIT;', $con);
 
 $instructors = array();
-$query =	"SELECT DISTINCT	CONCAT (Instructor.FirstName, ' ', Instructor.LastName) AS Name,
-								Instructor.Email
-			FROM CourseInstance, Instructor
-			WHERE	CourseInstance.TermID=(SELECT MAX(TermState.TermID) FROM TermState) AND
-					Instructor.Email=CourseInstance.Instructor;";
 
+// Reconnect if connection is lost
+if (mysql_ping($con) === false)
+{
+	$con = dbConnect();
+	if (!con)
+	{
+		die('Unable to connect to database: ' . mysql_error());
+	}
+}
+$query = "CALL GetInstructorsByTerm('$termID')";
 $result = mysql_query($query, $con);
 while ($row = mysql_fetch_array($result))
 {
@@ -45,8 +48,8 @@ while ($row = mysql_fetch_array($result))
 
 $pageURL = 'http://web.engr.oregonstate.edu/~albertd/eecsabet/index.php';
 
-$subject = "Your courses are ready for finalization";
-$body = "Your courses are ready for finalization of their ABET accredidation information. Please provide this information soon. To do so, visit the following pages:";
+$subject = "Your courses are ready to be finalized";
+$body = "Your courses are ready to be finalized of their ABET accredidation information. Please provide this information soon. To do so, visit the following pages:";
 
 $headers  = 'MIME-Version: 1.0' . "\r\n";
 $headers .= 'Content-type: text/html; charset=iso-8859-1' . "\r\n";
@@ -58,17 +61,20 @@ while (($instructor = current($instructors)) !== false)
 {
 	$to = key($instructors);
 	
-	$query =	"SELECT DISTINCT	CONCAT(Course.Dept, ' ', Course.CourseNumber) AS Course,
-									CourseInstance.ID AS InstanceID
-				FROM CourseInstance, TermState, Course, Instructor
-				WHERE	CourseInstance.TermID=TermState.TermID AND
-						TermState.TermID=(SELECT MAX(TermID) FROM TermState) AND
-						Course.ID=CourseInstance.CourseID AND
-						Instructor.Email='$to';";
+	// Reconnect if connection is lost
+	if (mysql_ping($con) === false)
+	{
+		$con = dbConnect();
+		if (!con)
+		{
+			die('Unable to connect to database: ' . mysql_error());
+		}
+	}
 	
+	$query = "CALL GetUnfinishedCourses('$to', '$termID')";
 	$result = mysql_query($query, $con);
 	
-	$message = '<html><head><title>Ready for Finalization</title><head><body>' . $instructor . ',<br /><br />' . $body . '<br />';
+	$message = '<html><head><title>Ready to be Finalized</title><head><body>' . $instructor . ',<br /><br />' . $body . '<br />';
 	
 	while ($row = mysql_fetch_array($result))
 	{
@@ -77,7 +83,6 @@ while (($instructor = current($instructors)) !== false)
 	
 	$message .= '<br />EECS ABET Mailer';
 	
-	#print "$to<br />$message<br /><br />";
 	mail($to, $subject, $message, $headers);
 	
 	next($instructors);
