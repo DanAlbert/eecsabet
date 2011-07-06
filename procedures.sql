@@ -137,7 +137,7 @@ BEGIN
 		SELECT -1;
 	END;
 	
-	DELETE FROM RemoveLearningResource WHERE ID=pID;
+	DELETE FROM LearningResources WHERE ID=pID;
 	SELECT 1;
 END$$
 DELIMITER ;

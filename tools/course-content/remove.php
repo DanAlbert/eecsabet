@@ -27,25 +27,37 @@ if (sizeof($toRemove) == 0)
 	return;
 }
 
-// Delete from MasterCLO
-$query = "DELETE FROM CourseContent WHERE ";
-$first = true;
 foreach ($toRemove as $id)
 {
-	if (!$first)
+	$query = "CALL RemoveCourseContent('$id')";
+	$result = false;
+	
+	// Reconnect if connection is lost
+	if (mysql_ping($con) === false)
 	{
-		$query .= " OR ";
+		$con = dbConnect();
+		if (!con)
+		{
+			die('Unable to connect to database: ' . mysql_error());
+		}
 	}
-	$query .= "ID='$id'";
-	$first = false;
-}
-$query .= ';';
-
-if (mysql_query($query, $con) === false)
-{
-	print mysql_error();
-	mysql_close($con);
-	return;
+	
+	$result = mysql_query($query, $con);
+	$row = mysql_fetch_array($result);
+	switch ($row[0])
+	{
+	case -1:
+		print 'An error occured while removing the course content.';
+		mysql_close($con);
+		return;
+		
+	case 1:
+		break;
+		
+	default:
+		print $query . ': ERROR (' . mysql_errno() . ')<br />';
+		break;
+	}
 }
 
 mysql_close($con);
