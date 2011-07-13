@@ -9,6 +9,11 @@ if (!con)
 }
 
 $courseID = mysql_real_escape_string($_REQUEST['courseID']);
+
+# This is broken after the Great Rebuild of July. Get out of here.
+header('Location: index.php?courseID=' . $courseID . '&error=4');
+return;
+
 $remove = $_POST['remove'];
 
 $toRemove = array();

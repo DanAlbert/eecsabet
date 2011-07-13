@@ -86,6 +86,11 @@ if (isset($_REQUEST['error']) AND ($_REQUEST['error'] == 2))
 	print '<p class="error">Nothing to remove.</p>';
 }
 
+if (isset($_REQUEST['error']) AND ($_REQUEST['error'] == 4))
+{
+	print '<p class="error">Please don\'t do that, I\'m still fixing things.</p>';
+}
+
 ?>
 <form action="remove.php?courseID=<?php echo $courseID; ?>" method="POST">
 	<table>

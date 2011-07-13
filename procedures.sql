@@ -199,3 +199,95 @@ BEGIN
 			Instructor.Email=pInstructor;
 END$$
 DELIMITER ;
+
+DELIMITER $$
+DROP PROCEDURE IF EXISTS CreateCLO$$
+CREATE PROCEDURE CreateCLO(	IN pCourseID INT,
+							IN pDescription TEXT(255),
+							IN pOutcomes VARCHAR(255))
+BEGIN
+	DECLARE cloNumber INT DEFAULT 1;
+	DECLARE cloID INT DEFAULT -1;
+	DECLARE success INT DEFAULT 0;
+	DECLARE i INT DEFAULT 1;
+	
+	DECLARE EXIT HANDLER FOR SQLEXCEPTION, SQLWARNING
+	BEGIN
+		ROLLBACK;
+		SELECT -1;
+	END;
+	
+	START TRANSACTION;
+	
+	SELECT MAX(CLO.CLONumber)+1 AS MaxCLONumber
+	INTO cloNumber
+	FROM MasterCLO, CLO
+	WHERE MasterCLO.CourseID=pCourseID AND MasterCLO.CLOID=CLO.ID;
+	
+	IF cloNumber IS NULL THEN
+		SET cloNumber = 1;
+	END IF;
+	
+	INSERT INTO CLO (CourseID, CLONumber, Description) VALUES (pCourseID, cloNumber, pDescription);
+	SELECT LAST_INSERT_ID() INTO cloID;
+	
+	INSERT INTO MasterCLO (CLOID, CourseID) VALUES (cloID, pCourseID);
+	
+	label: WHILE i<=CHAR_LENGTH(pOutcomes) DO
+		CALL AssociateOutcome(cloID, SUBSTR(pOutcomes FROM i FOR 1), success);
+		
+		IF success=0 THEN
+			ROLLBACK;
+			LEAVE label;
+		END IF;
+		
+		SET i = i + 1;
+	END WHILE;
+	
+	COMMIT;
+	SELECT success;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+DROP PROCEDURE IF EXISTS AssociateOutcome$$
+CREATE PROCEDURE AssociateOutcome(	IN pCLOID INT,
+									IN pOutcome CHAR(1),
+									OUT pSuccess INT)
+BEGIN
+	DECLARE outcomeID INT DEFAULT -1;
+	
+	DECLARE EXIT HANDLER FOR SQLEXCEPTION, SQLWARNING
+	BEGIN
+		SET pSuccess = 0;
+	END;
+	
+	SELECT Outcomes.ID
+	INTO outcomeID
+	FROM Outcomes, CLO, Course
+	WHERE	NOT STRCMP(BINARY Outcomes.Outcome, BINARY pOutcome) AND
+			Outcomes.Dept=Course.Dept AND
+			CLO.CourseID=Course.ID AND
+			CLO.ID=pCLOID;
+	
+	INSERT INTO CLOOutcomes (CLOID, OutcomeID) VALUES (pCLOID, outcomeID);
+	
+	SET pSuccess = 1;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+DROP PROCEDURE IF EXISTS GetCourseCLOInformation$$
+CREATE PROCEDURE GetCourseCLOInformation(IN pCourseID INT)
+BEGIN
+	SELECT	MasterCLO.CourseID AS CourseID,
+			MasterCLO.CLOID AS CLOID,
+			CLO.CLONumber,
+			CLO.Description,
+			GROUP_CONCAT(DISTINCT Outcomes.Outcome ORDER BY Outcomes.Outcome ASC SEPARATOR ', ') AS Outcomes
+	FROM MasterCLO, CLO, CLOOutcomes, Outcomes
+	WHERE MasterCLO.CourseID=CLO.CourseID AND MasterCLO.CLOID=CLO.ID AND CLOOutcomes.CLOID=CLO.ID AND CLOOutcomes.OutcomeID=Outcomes.ID
+	GROUP BY MasterCLO.CourseID, CLOOutcomes.CLOID
+	ORDER BY MasterCLO.CourseID, CLO.CLONumber;
+END$$
+DELIMITER ;

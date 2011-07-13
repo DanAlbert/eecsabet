@@ -25,9 +25,9 @@ SELECT	MasterCLO.CourseID AS CourseID,
 		MasterCLO.CLOID AS CLOID,
 		CLO.CLONumber,
 		CLO.Description,
-		GROUP_CONCAT(DISTINCT CLOOutcomes.ABETOutcome ORDER BY CLOOutcomes.ABETOutcome ASC SEPARATOR ', ') AS Outcomes
-FROM MasterCLO, CLO, CLOOutcomes
-WHERE MasterCLO.CourseID=CLO.CourseID AND MasterCLO.CLOID=CLO.ID AND CLOOutcomes.CLOID=CLO.ID
+		GROUP_CONCAT(DISTINCT Outcomes.Outcome ORDER BY Outcomes.Outcome ASC SEPARATOR ', ') AS Outcomes
+FROM MasterCLO, CLO, CLOOutcomes, Outcomes
+WHERE MasterCLO.CourseID=CLO.CourseID AND MasterCLO.CLOID=CLO.ID AND CLOOutcomes.CLOID=CLO.ID AND CLOOutcomes.OutcomeID=Outcomes.ID
 GROUP BY MasterCLO.CourseID, CLOOutcomes.CLOID
 ORDER BY MasterCLO.CourseID, CLO.CLONumber;
 
@@ -37,17 +37,18 @@ SELECT	CourseInstance.ID AS CourseInstanceID,
 		CLO.ID AS CLOID,
 		CLO.CLONumber,
 		CLO.Description,
-		GROUP_CONCAT(DISTINCT CLOOutcomes.ABETOutcome ORDER BY CLOOutcomes.ABETOutcome ASC SEPARATOR ', ') AS Outcomes,
+		GROUP_CONCAT(DISTINCT Outcomes.Outcome ORDER BY Outcomes.Outcome ASC SEPARATOR ', ') AS Outcomes,
 		CourseInstanceCLO.Assessed,
 		CourseInstanceCLO.MeanScore,
 		CourseInstanceCLO.MedianScore,
 		CourseInstanceCLO.HighScore,
 		CourseInstanceCLO.SatisfactoryScore
-FROM CourseInstance, CourseInstanceCLO, CLO, CLOOutcomes
+FROM CourseInstance, CourseInstanceCLO, CLO, CLOOutcomes, Outcomes
 WHERE	CourseInstance.CourseID=CLO.CourseID AND
 		CourseInstance.ID=CourseInstanceCLO.CourseInstanceID AND
 		CourseInstanceCLO.CLOID=CLO.ID AND
 		CLOOutcomes.CLOID=CLO.ID AND
+		CLOOutcomes.OutcomeID=Outcomes.ID AND
 		CourseInstance.State<>'Sent'
 GROUP BY CourseInstance.ID, CLOOutcomes.CLOID
 UNION
@@ -55,13 +56,13 @@ SELECT	C1.ID AS CourseInstanceID,
 		CLO.ID AS CLOID,
 		CLO.CLONumber,
 		CLO.Description,
-		GROUP_CONCAT(DISTINCT CLOOutcomes.ABETOutcome ORDER BY CLOOutcomes.ABETOutcome ASC SEPARATOR ', ') AS Outcomes,
+		GROUP_CONCAT(DISTINCT Outcomes.Outcome ORDER BY Outcomes.Outcome ASC SEPARATOR ', ') AS Outcomes,
 		CourseInstanceCLO.Assessed,
 		CourseInstanceCLO.MeanScore,
 		CourseInstanceCLO.MedianScore,
 		CourseInstanceCLO.HighScore,
 		CourseInstanceCLO.SatisfactoryScore
-FROM CourseInstance AS C1, CourseInstance AS C2, CourseInstanceCLO, CLO, CLOOutcomes
+FROM CourseInstance AS C1, CourseInstance AS C2, CourseInstanceCLO, CLO, CLOOutcomes, Outcomes
 WHERE	C2.ID = (	SELECT C3.ID
 					FROM CourseInstance AS C3
 					WHERE C3.TermID=(	SELECT MAX(C4.TermID)
@@ -75,6 +76,7 @@ WHERE	C2.ID = (	SELECT C3.ID
 		C2.ID=CourseInstanceCLO.CourseInstanceID AND
 		CourseInstanceCLO.CLOID=CLO.ID AND
 		CLOOutcomes.CLOID=CLO.ID AND
+		CLOOutcomes.OutcomeID=Outcomes.ID AND
 		C1.State='Sent'
 GROUP BY C1.ID, CLOOutcomes.CLOID
 UNION
@@ -82,13 +84,13 @@ SELECT	C1.ID AS CourseInstanceID,
 		CLO.ID AS CLOID,
 		CLO.CLONumber,
 		CLO.Description,
-		GROUP_CONCAT(DISTINCT CLOOutcomes.ABETOutcome ORDER BY CLOOutcomes.ABETOutcome ASC SEPARATOR ', ') AS Outcomes,
+		GROUP_CONCAT(DISTINCT Outcomes.Outcome ORDER BY Outcomes.Outcome ASC SEPARATOR ', ') AS Outcomes,
 		NULL,
 		NULL,
 		NULL,
 		NULL,
 		NULL
-FROM CourseInstance AS C1, CourseInstanceCLO, CLO, CLOOutcomes
+FROM CourseInstance AS C1, CourseInstanceCLO, CLO, CLOOutcomes, Outcomes
 WHERE	1 = (	SELECT COUNT(*)
 				FROM CourseInstance AS C2
 				WHERE C2.CourseID=C1.CourseID
@@ -97,6 +99,7 @@ WHERE	1 = (	SELECT COUNT(*)
 		C1.ID=CourseInstanceCLO.CourseInstanceID AND
 		CourseInstanceCLO.CLOID=CLO.ID AND
 		CLOOutcomes.CLOID=CLO.ID AND
+		CLOOutcomes.OutcomeID=Outcomes.ID AND
 		C1.State='Sent'
 GROUP BY C1.ID, CLOOutcomes.CLOID
 ORDER BY CourseInstanceID, CLONumber;
@@ -220,7 +223,7 @@ SELECT DISTINCT	Instructor.FirstName,
 FROM CourseInstance, TermState, Course, Instructor
 WHERE	CourseInstance.TermID=TermState.TermID AND
 		CourseInstance.State<(SELECT State+0 FROM TermState WHERE TermID=CourseInstance.TermID) AND
-		TermState.TermID=(SELECT MAX(TermID) FROM TermState) AND
+		TermState.TermID=(SELECT TermID FROM CurrentTerm LIMIT 1) AND
 		Course.ID=CourseInstance.CourseID AND
 		Instructor.Email=CourseInstance.Instructor;
 
@@ -236,7 +239,7 @@ CREATE ALGORITHM=UNDEFINED VIEW CurrentTermStateInformation AS
 SELECT	Term AS CurrentTerm,
 		State AS CurrentState
 FROM TermStateInformation
-WHERE CurrentTerm=(SELECT MAX(TermID) FROM TermState);
+WHERE Term=(SELECT TermID FROM CurrentTerm LIMIT 1);
 
 DROP VIEW IF EXISTS PrerequisiteAlternativesInformation;
 CREATE ALGORITHM=UNDEFINED VIEW PrerequisiteAlternativesInformation AS
