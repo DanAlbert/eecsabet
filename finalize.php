@@ -2,24 +2,20 @@
 
 require_once 'db.php';
 
-$con = dbConnect();
-if (!con)
-{
-	die('Unable to connect to database: ' . mysql_error());
-}
+$dbh = dbConnect();
 
-$courseInstanceID = mysql_real_escape_string($_REQUEST['courseInstanceID']);
+$courseInstanceID = $_REQUEST['courseInstanceID'];
 $assessed = $_POST['assessed'];
 $mean = $_POST['mean'];
 $median = $_POST['median'];
 $high = $_POST['high'];
 $satisfactory = $_POST['satisfactory'];
 
-$prep = mysql_real_escape_string($_POST['prep']);
-$prepActions = mysql_real_escape_string($_POST['prepActions']);
-$changes = mysql_real_escape_string($_POST['changes']);
-$clo = mysql_real_escape_string($_POST['clo']);
-$recs = mysql_real_escape_string($_POST['recs']);
+$prep = $_POST['prep'];
+$prepActions = $_POST['prepActions'];
+$changes = $_POST['changes'];
+$clo = $_POST['clo'];
+$recs = $_POST['recs'];
 
 if (sizeof($assessed) == 0)
 {
@@ -27,7 +23,14 @@ if (sizeof($assessed) == 0)
 	return;
 }
 
-mysql_query('START TRANSACTION;', $con);
+try
+{
+	$dbh->beginTransaction();
+}
+catch (PDOException $e)
+{
+	die('PDOException: ' . $e->getmessage());
+}
 
 $size = sizeof($assessed);
 $current = null;
@@ -35,7 +38,7 @@ for ($i = 0; $i < $size; $i++)
 {
 	$current = current($assessed);
 	
-	$cleanedAssessed = mysql_real_escape_string($assessed[key($assessed)]);
+	$cleanedAssessed = $assessed[key($assessed)];
 	
 	$meanDecimalPos = strpos($mean[key($assessed)], '.');
 	$medianDecimalPos = strpos($median[key($assessed)], '.');
@@ -45,7 +48,8 @@ for ($i = 0; $i < $size; $i++)
 	$cleanedMean = '';
 	if ($meanDecimalPos !== false)
 	{
-		$cleanedMean = preg_replace('/\D/', '', substr($mean[key($assessed)], 0, $meanDecimalPos));
+		$intPart = substr($mean[key($assessed)], 0, $meanDecimalPos);
+		$cleanedMean = preg_replace('/\D/', '', $intPart);
 	}
 	else
 	{
@@ -55,7 +59,8 @@ for ($i = 0; $i < $size; $i++)
 	$cleanedMedian = '';
 	if ($medianDecimalPos !== false)
 	{
-		$cleanedMedian = preg_replace('/\D/', '', substr($median[key($assessed)], 0, $medianDecimalPos));
+		$intPart = substr($median[key($assessed)], 0, $medianDecimalPos);
+		$cleanedMedian = preg_replace('/\D/', '', $intPart);
 	}
 	else
 	{
@@ -65,7 +70,8 @@ for ($i = 0; $i < $size; $i++)
 	$cleanedHigh = '';
 	if ($highDecimalPos !== false)
 	{
-		$cleanedHigh = preg_replace('/\D/', '', substr($high[key($assessed)], 0, $highDecimalPos));
+		$intPart = substr($high[key($assessed)], 0, $highDecimalPos);
+		$cleanedHigh = preg_replace('/\D/', '', $intPart);
 	}
 	else
 	{
@@ -75,18 +81,27 @@ for ($i = 0; $i < $size; $i++)
 	$cleanedSatisfactory = '';
 	if ($satisfactoryDecimalPos !== false)
 	{
-		$cleanedSatisfactory = preg_replace('/\D/', '', substr($satisfactory[key($assessed)], 0, $satisfactoryDecimalPos));
+		$intPart =
+			substr($satisfactory[key($assessed)], 0, $satisfactoryDecimalPos);
+		
+		$cleanedSatisfactory = preg_replace('/\D/', '', $intPart);
 	}
 	else
 	{
-		$cleanedSatisfactory = preg_replace('/\D/', '', $satisfactory[key($assessed)]);
+		$cleanedSatisfactory =
+			preg_replace('/\D/', '', $satisfactory[key($assessed)]);
 	}
 	
 	if (($cleanedAssessed == '') OR ($cleanedAssessed == null))
 	{
-		mysql_query('ROLLBACK;', $con);
-		mysql_close($con);
-		switch (submitComments($courseInstanceID, $prep, $prepActions, $changes, $clo, $recs))
+		$dbh->rollback();
+		
+		switch (submitComments(	$dbh,
+								$courseInstanceID,
+								$prep, $prepActions,
+								$changes,
+								$clo,
+								$recs))
 		{
 		case 0:
 			onError($courseInstanceID, 11);
@@ -105,9 +120,15 @@ for ($i = 0; $i < $size; $i++)
 
 	if ($cleanedMean == '')
 	{
-		mysql_query('ROLLBACK;', $con);
-		mysql_close($con);
-		switch (submitComments($courseInstanceID, $prep, $prepActions, $changes, $clo, $recs))
+		$dbh->rollback();
+		
+		switch (submitComments(	$dbh,
+								$courseInstanceID,
+								$prep,
+								$prepActions,
+								$changes,
+								$clo,
+								$recs))
 		{
 		case 0:
 			onError($courseInstanceID, 11);
@@ -126,9 +147,15 @@ for ($i = 0; $i < $size; $i++)
 
 	if ($cleanedMedian == '')
 	{
-		mysql_query('ROLLBACK;', $con);
-		mysql_close($con);
-		switch (submitComments($courseInstanceID, $prep, $prepActions, $changes, $clo, $recs))
+		$dbh->rollback();
+		
+		switch (submitComments(	$dbh,
+								$courseInstanceID,
+								$prep,
+								$prepActions,
+								$changes,
+								$clo,
+								$recs))
 		{
 		case 0:
 			onError($courseInstanceID, 11);
@@ -147,9 +174,15 @@ for ($i = 0; $i < $size; $i++)
 
 	if ($cleanedHigh == '')
 	{
-		mysql_query('ROLLBACK;', $con);
-		mysql_close($con);
-		switch (submitComments($courseInstanceID, $prep, $prepActions, $changes, $clo, $recs))
+		$dbh->rollback();
+		
+		switch (submitComments(	$dbh,
+								$courseInstanceID,
+								$prep,
+								$prepActions,
+								$changes,
+								$clo,
+								$recs))
 		{
 		case 0:
 			onError($courseInstanceID, 11);
@@ -168,9 +201,15 @@ for ($i = 0; $i < $size; $i++)
 
 	if ($cleanedSatisfactory == '')
 	{
-		mysql_query('ROLLBACK;', $con);
-		mysql_close($con);
-		switch (submitComments($courseInstanceID, $prep, $prepActions, $changes, $clo, $recs))
+		$dbh->rollback();
+		
+		switch (submitComments(	$dbh,
+								$courseInstanceID,
+								$prep,
+								$prepActions,
+								$changes,
+								$clo,
+								$recs))
 		{
 		case 0:
 			onError($courseInstanceID, 11);
@@ -189,18 +228,30 @@ for ($i = 0; $i < $size; $i++)
 	
 	$cloID = key($assessed);
 	
-	$query =	"UPDATE CourseInstanceCLO SET Assessed='$cleanedAssessed', " .
-				"MeanScore='$cleanedMean', " .
-				"MedianScore='$cleanedMedian', " .
-				"HighScore='$cleanedHigh', " .
-				"SatisfactoryScore='$cleanedSatisfactory' " .
-				"WHERE CLOID='$cloID' AND CourseInstanceID='$courseInstanceID';";
-	
-	mysql_query($query, $con);
-	if (mysql_errno() != 0)
+	try
 	{
-		mysql_query('ROLLBACK;', $con);
-		mysql_close($con);
+		$sth = $dbh->prepare(
+			"UPDATE CourseInstanceCLO " .
+			"SET Assessed=:assessed, " .
+				"MeanScore=:mean, " .
+				"MedianScore=:median, " .
+				"HighScore=:high, " .
+				"SatisfactoryScore=:satisfactory " .
+			"WHERE CLOID=:cloid AND CourseInstanceID=:id");
+		
+		$sth->bindParam(':assessed', $cleanedAssessed);
+		$sth->bindParam(':mean', $cleanedMean);
+		$sth->bindParam(':median', $cleanedMedian);
+		$sth->bindParam(':high', $cleanedHigh);
+		$sth->bindParam(':satisfactory', $cleanedSatisfactory);
+		$sth->bindParam(':cloid', $cloID);
+		$sth->bindparam(':id', $courseInstanceID);
+		
+		$sth->execute();
+	}
+	catch (PDOException $e)
+	{
+		$dbh->rollback();
 		onError($courseInstanceID, 5);
 		return;
 	}
@@ -208,59 +259,91 @@ for ($i = 0; $i < $size; $i++)
 	next($assessed);
 }
 
-$query = "UPDATE CourseInstance SET State='Finalized' WHERE ID='$courseInstanceID';";
-mysql_query($query, $con);
-if (mysql_errno() != 0)
+try
 {
-	mysql_query('ROLLBACK;', $con);
-	mysql_close($con);
+	$sth = $dbh->prepare(
+		"UPDATE CourseInstance " .
+		"SET State='Finalized' " .
+		"WHERE ID=:id");
+	
+	$sth->bindParam(':id', $courseInstanceID);
+	mysql_query($query, $con);
+}
+catch (PDOException $e)
+{
+	$dbh->rollback();
 	onError($courseInstanceID, 5);
 	return;
 }
 
-switch (submitComments($con, $courseInstanceID, $prep, $prepActions, $changes, $clo, $recs))
+switch (submitComments(	$dbh,
+						$courseInstanceID,
+						$prep,
+						$prepActions,
+						$changes,
+						$clo,
+						$recs))
 {
 case 0:
-	mysql_query('COMMIT;', $con);
-	mysql_close($con);
+	$dbh->commit();
 	onError($courseInstanceID, 12);
 	break;
 	
 case 1:
-	mysql_query('ROLLBACK;', $con);
-	mysql_close($con);
+	$dbh->rollback();
 	onError($courseInstanceID, 14);
 	break;
 	
 case 2:
-	mysql_query('ROLLBACK;', $con);
-	mysql_close($con);
+	$dbh->rollback();
 	onError($courseInstanceID, 5);
 	break;
 	
 default:
-	mysql_query('ROLLBACK;', $con);
-	mysql_close($con);
+	$dbh->rollback();
 	onError($courseInstanceID, 15);
 	break;
 }
 
-function submitComments($con, $courseInstanceID, $prep, $prepActions, $changes, $clo, $recs)
+function submitComments(
+	$dbh,
+	$courseInstanceID,
+	$prep,
+	$prepActions,
+	$changes,
+	$clo,
+	$recs)
 {
-	if (($prep == '') OR ($prepActions == '') OR ($changes == '') OR ($clo == '') OR ($recs == ''))
+	if (($prep == '') OR
+		($prepActions == '') OR
+		($changes == '') OR
+		($clo == '') OR
+		($recs == ''))
 	{
 		return 1;
 	}
 	
-	$query =	"UPDATE CourseInstance SET " .
-				"CommentPrep='$prep', " .
-				"CommentPrepActions='$prepActions', " .
-				"CommentChanges='$changes', " .
-				"CommentCLO='$clo', " .
-				"CommentRecs='$recs' " .
-				"WHERE ID='$courseInstanceID';";
-	mysql_query($query, $con);
-	if (mysql_errno() != 0)
+	try
+	{
+		$sth = $dbh->prepare(
+			"UPDATE CourseInstance SET " .
+			"CommentPrep=:prep, " .
+			"CommentPrepActions=:prepActions, " .
+			"CommentChanges=:changes, " .
+			"CommentCLO=:clo, " .
+			"CommentRecs=:recs' " .
+			"WHERE ID=:id");
+		
+		$sth->bindParam(':prep', $prep);
+		$sth->bindParam(':prepActions', $prepActions);
+		$sth->bindParam(':changes', $changes);
+		$sth->bindParam(':clo', $clo);
+		$sth->bindParam(':recs', $recs);
+		$sth->bindParam(':id', $courseInstanceID);
+		
+		$sth->execute();
+	}
+	catch (PDOException $e)
 	{
 		return 2;
 	}
@@ -270,8 +353,8 @@ function submitComments($con, $courseInstanceID, $prep, $prepActions, $changes, 
 
 function onError($courseInstanceID, $errno)
 {
-	header('Location: index.php?courseInstanceID=' . $courseInstanceID . '&error=' . $errno);
-	return;
+	header('Location: index.php?courseInstanceID=' . $courseInstanceID .
+		'&error=' . $errno);
 }
 
 ?>

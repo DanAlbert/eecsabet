@@ -1,17 +1,14 @@
 <?php
 
+require_once 'debug.php';
 require_once 'db.php';
 
-$con = dbConnect();
-if (!con)
-{
-	die('Unable to connect to database: ' . mysql_error());
-}
+$dbh = dbConnect();
 
-$courseInstanceID = mysql_real_escape_string($_REQUEST['courseInstanceID']);
+$courseInstanceID = $_REQUEST['courseInstanceID'];
 $assessed = $_POST['assessed'];
 $satisfactory = $_POST['satisfactory'];
-$recs = mysql_real_escape_string($_POST['recs']);
+$recs = $_POST['recs'];
 
 if (sizeof($assessed) == 0)
 {
@@ -19,7 +16,14 @@ if (sizeof($assessed) == 0)
 	return;
 }
 
-mysql_query('START TRANSACTION;', $con);
+try
+{
+	$dbh->beginTransaction();
+}
+catch (PDOException $e)
+{
+	die('PDOException: ' . $e->getMessage());
+}
 
 $size = sizeof($assessed);
 $current = null;
@@ -27,23 +31,27 @@ for ($i = 0; $i < $size; $i++)
 {
 	$current = current($assessed);
 	
-	$cleanedAssessed = mysql_real_escape_string($assessed[key($assessed)]);
+	$cleanedAssessed = $assessed[key($assessed)];
 	$satisfactoryDecimalPos = strpos($satisfactory[key($assessed)], '.');
 	
 	$cleanedSatisfactory = '';
 	if ($satisfactoryDecimalPos !== false)
 	{
-		$cleanedSatisfactory = preg_replace('/\D/', '', substr($satisfactory[key($assessed)], 0, $satisfactoryDecimalPos));
+		$intPart =
+			substr($satisfactory[key($assessed)], 0, $satisfactoryDecimalPos);
+		
+		$cleanedSatisfactory = preg_replace('/\D/', '', $intPart);
 	}
 	else
 	{
-		$cleanedSatisfactory = preg_replace('/\D/', '', $satisfactory[key($assessed)]);
+		$cleanedSatisfactory =
+			preg_replace('/\D/', '', $satisfactory[key($assessed)]);
 	}
 	
 	if (($cleanedAssessed == '') OR ($cleanedAssessed == null))
 	{
-		mysql_query('ROLLBACK;', $con);
-		mysql_close($con);
+		$dbh->rollback();
+		
 		switch (submitComments($courseInstanceID, $recs))
 		{
 		case 0:
@@ -63,8 +71,8 @@ for ($i = 0; $i < $size; $i++)
 
 	if ($cleanedSatisfactory == '')
 	{
-		mysql_query('ROLLBACK;', $con);
-		mysql_close($con);
+		$dbh->rollback();
+		
 		switch (submitComments($courseInstanceID, $recs))
 		{
 		case 0:
@@ -84,15 +92,24 @@ for ($i = 0; $i < $size; $i++)
 	
 	$cloID = key($assessed);
 	
-	$query =	"UPDATE CourseInstanceCLO SET Assessed='$cleanedAssessed', " .
-				"SatisfactoryScore='$cleanedSatisfactory' " .
-				"WHERE CLOID='$cloID' AND CourseInstanceID='$courseInstanceID';";
-	
-	mysql_query($query, $con);
-	if (mysql_errno() != 0)
+	try
 	{
-		mysql_query('ROLLBACK;', $con);
-		mysql_close($con);
+		$sth = $dbh->prepare(
+			"UPDATE CourseInstanceCLO " .
+			"SET Assessed=:assessed, " .
+			"SatisfactoryScore=:satisfactory " .
+			"WHERE CLOID=:cloid AND CourseInstanceID=:id");
+		
+		$sth->bindParam(':assessed', $cleanedAssessed);
+		$sth->bindParam(':satisfactory', $cleanedSatisfactory);
+		$sth->bindParam(':cloid', $cloID);
+		$sth->bindParam(':id', $courseInstanceID);
+		
+		$sth->execute();
+	}
+	catch (PDOException $e)
+	{
+		$dbh->rollback();
 		onError($courseInstanceID, 5);
 		return;
 	}
@@ -100,18 +117,24 @@ for ($i = 0; $i < $size; $i++)
 	next($assessed);
 }
 
-$query = "UPDATE CourseInstance SET State='Approved' WHERE ID='$courseInstanceID';";
-mysql_query($query, $con);
-if (mysql_errno() != 0)
+try
 {
-	mysql_query('ROLLBACK;', $con);
-	mysql_close($con);
+	$sth = $dbh->prepare(
+		"UPDATE CourseInstance " .
+		"SET State='Approved' " .
+		"WHERE ID=:id");
+	
+	$sth->bindParam(':id', $courseInstanceID);
+	$sth->execute();
+}
+catch (PDOException $e)
+{
+	$dbh->rollback();
 	onError($courseInstanceID, 5);
 	return;
 }
 
-mysql_query('COMMIT;', $con);
-mysql_close($con);
+$dbh->commit();
 
 switch (submitComments($courseInstanceID, $recs))
 {
@@ -132,26 +155,30 @@ return;
 
 function submitComments($courseInstanceID, $recs)
 {
-	$con = dbConnect();
-	if (!con)
-	{
-		die('Unable to connect to database: ' . mysql_error());
-	}
+	$dbh = dbConnect();
 	
 	if ($recs == '')
 	{
 		return 1;
 	}
 	
-	$query = "UPDATE CourseInstance SET CommentRecs='$recs' WHERE ID='$courseInstanceID';";
-	mysql_query($query, $con);
-	if (mysql_errno() != 0)
+	try
 	{
-		mysql_close($con);
+		$sth = $dbh->prepare(
+			"UPDATE CourseInstance " .
+			"SET CommentRecs=:recs " .
+			"WHERE ID=:id");
+		
+		$sth->bindParam(':recs', $recs);
+		$sth->bindParam(':id', $courseInstanceID);
+		
+		$sth->execute();
+	}
+	catch (PDOException $e)
+	{
 		return 2;
 	}
 
-	mysql_close($con);
 	return 0;
 }
 
