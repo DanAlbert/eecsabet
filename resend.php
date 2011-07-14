@@ -6,55 +6,87 @@
 <body>
 <?php
 
+require_once 'debug.php';
 require_once 'db.php';
 
-$con = dbConnect();
-if (!$con)
+# Email info
+const $pageURL = 'http://web.engr.oregonstate.edu/~albertd/eecsabet/index.php';
+const $subject = "Your courses that require ABET information";
+
+const $body =
+	"These are the courses we have you listed as teaching this term. Please " .
+	"provide any missing information soon. To do so, visit the following " .
+	"pages:";
+
+const $headers  =
+	'MIME-Version: 1.0' . "\r\n" .
+	'Content-type: text/html; charset=iso-8859-1' . "\r\n" .
+	'From: eecsabet@eecs.orst.edu' . "\r\n" .
+	'Reply-To: eecsabet@eecs.orst.edu' . "\r\n" .
+	'X-Mailer: PHP/' . phpversion();
+
+$dbh = dbConnect();
+
+$email = $_POST['email'];
+
+try
 {
-	die('Unable to connect to database: ' . mysql_error());
+	$sth = $dbh->prepare(
+		"SELECT CONCAT(FirstName, ' ', LastName) AS Name " .
+		"FROM Instructor " .
+		"WHERE Email=:email");
+
+	$sth->bindParam(':email', $email);
+
+	$sth->execute();
+}
+catch (PDOException $e)
+{
+	die('PDOException: ' . $e->getMessage());
 }
 
-$email = mysql_real_escape_string($_POST['email']);
-
-$query = "SELECT CONCAT(FirstName, ' ', LastName) AS Name FROM Instructor WHERE Email='$email';";
-$result = mysql_query($query, $con);
-$row = mysql_fetch_array($result);
-$instructorName = $row['Name'];
-
-$pageURL = 'http://web.engr.oregonstate.edu/~albertd/eecsabet/index.php';
+$instructorName = $sth->fetch()->Name;
 
 $to = $email;
-$subject = "Your courses that require ABET information";
-$body = "These are the courses we have you listed as teaching this term. Please provide any missing information soon. To do so, visit the following pages:";
 
-$headers  = 'MIME-Version: 1.0' . "\r\n";
-$headers .= 'Content-type: text/html; charset=iso-8859-1' . "\r\n";
-$headers .= 'From: eecsabet@eecs.orst.edu' . "\r\n";
-$headers .= 'Reply-To: eecsabet@eecs.orst.edu' . "\r\n";
-$headers .= 'X-Mailer: PHP/' . phpversion();
+$message =
+	'<html><head><title>Nagging</title><head><body>' . 
+	$instructorName . ',<br /><br />' . $body . '<br />';
 
-$message = '<html><head><title>Nagging</title><head><body>' . $instructorName . ',<br /><br />' . $body . '<br />';
-
-$query =	"SELECT	CourseInstance.ID AS InstanceID,
-					CONCAT(Dept, ' ', CourseNumber) AS Course
-			FROM Course, CourseInstance
-			WHERE	Course.ID=CourseInstance.CourseID AND
-					CourseInstance.TermID=(SELECT MAX(TermID) FROM TermState) AND
-					CourseInstance.Instructor='$email';";
-
-$result = mysql_query($query, $con);
-while ($row = mysql_fetch_array($result))
+try
 {
-	$courseInstance = $row['InstanceID'];
-	$courseName = $row['Course'];
-	$message .= '<a href="' . $pageURL . '?courseInstanceID=' . $courseInstance . '">' . $courseName . '</a><br />';
+	$sth = $dbh->prepare(
+		"SELECT	CourseInstance.ID AS InstanceID,
+				CONCAT(Dept, ' ', CourseNumber) AS Course
+		FROM Course, CourseInstance, CurrentTerm
+		WHERE	Course.ID=CourseInstance.CourseID AND
+				CourseInstance.TermID=(SELECT TermID FROM CurrentTerm LIMIT 1) AND
+				CourseInstance.Instructor=:email;";
+
+	$sth->bindParam(':email', $email);
+
+	$sth->execute();
+}
+catch (PDOException $e)
+{
+	die('PDOException: ' . $e->getMessage());
+}
+
+while ($row = $sth->fetch())
+{
+	$courseInstance = $row->InstanceID;
+	$courseName = $row->Course;
+	$message .=
+		'<a href="' . $pageURL . '?courseInstanceID=' . $courseInstance . '">' .
+		$courseName . '</a><br />';
 }
 
 $message .= '<br />EECS ABET Mailer';
 
 if (mail($to, $subject, $message, $headers))
 {
-	print '<p>An email has been sent to you containing links to your courses.</p>';
+	print '<p>An email has been sent to you containing links to your courses.' .
+	'</p>';
 }
 else
 {
