@@ -11,6 +11,9 @@ approve.php:
 db.php:
 	Contains MySQL database utilities.
 
+debug.php:
+	Configures PHP to display errors.
+
 finalize.php:
 	Used to submit changes to all CLO metrics.
 

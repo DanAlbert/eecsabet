@@ -13,27 +13,39 @@
 
 if (!isset($_REQUEST['courseInstanceID']))
 {
-	print '<p>No course instance ID provided. Please use the link provided to you by email to access this page.</p>';
+	print '<p>No course instance ID provided. Please use the link provided to' .
+		' you by email to access this page.</p>';
 	print '<h2><Resend Email</h2>';
-	print '<form action="resend.php" method="POST"><label for="email">Email</label><input id="email" type="text" name="email" /><input type="submit" value="Resend Email" /></form>';
+	print '<form action="resend.php" method="POST"><label for="email">Email' .
+		'</label><input id="email" type="text" name="email" />' .
+		'<input type="submit" value="Resend Email" /></form>';
 	return;
 }
 
+require_once 'debug.php';
 require_once 'db.php';
 
-$con = dbConnect();
-if (!con)
+$dbh = dbConnect();
+
+$courseInstanceID = $_REQUEST['courseInstanceID'];
+
+try
 {
-	die('Unable to connect to database: ' . mysql_error());
+	$sth = $dbh->prepare(
+		"SELECT * FROM CourseInstanceInformation " .
+		"WHERE CourseInstanceID=:id");
+	
+	$sth->bindParam(':id', $courseInstanceID);
+	$sth->execute();
+
+	$row = $dbh->fetch();
+}
+catch (PDOException $e)
+{
+	die('PDOException: ' . $e->getMessage());
 }
 
-$courseInstanceID = mysql_real_escape_string($_REQUEST['courseInstanceID']);
-
-$query = "SELECT * FROM CourseInstanceInformation WHERE CourseInstanceID=$courseInstanceID;";
-$result = mysql_query($query, $con);
-$row = mysql_fetch_array($result);
-
-$termID = $row['TermID'];
+$termID = $row->TermID;
 $year = floor($termID / 100);
 $term = '';
 switch ($termID - ($year * 100))
@@ -54,34 +66,51 @@ case 3:
 	break;
 }
 
-print '<h1>Editing ABET Details for ' . $row['Dept'] . ' ' . $row['CourseNumber'] . ' (' . $row['CreditHours'] . ')</h1>';
-print '<h2>' . $row['Title'] . '</h2>';
+print '<h1>Editing ABET Details for ' . $row->Dept . ' ' . $row->CourseNumber .
+	' (' . $row->CreditHours . ')</h1>';
+
+print '<h2>' . $row->Title . '</h2>';
 print '<h2>' . $term . ' ' . $year . '</h2>';
-print '<h3>' . $row['FirstName'] . ' ' . $row['LastName'] . '</h3>';
+print '<h3>' . $row->FirstName . ' ' . $row->LastName . '</h3>';
 print '<h3>Catalog Description</h3>';
-print '<p>' . $row['Description'] . '</p>';
+print '<p>' . $row->Description . '</p>';
 
-$state = $row['State'];
-$prep = $row['CommentPrep'];
-$prepActions = $row['CommentPrepActions'];
-$changes = $row['CommentChanges'];
-$clo = $row['CommentCLO'];
-$recs = $row['CommentRecs'];
+$state = $row->State;
+$prep = $row->CommentPrep;
+$prepActions = $row->CommentPrepActions;
+$changes = $row->CommentChanges;
+$clo = $row->CommentCLO;
+$recs = $row->CommentRecs;
 
-$query = "SELECT Dept, CourseNumber, IsCorequisite FROM PrerequisiteInformation, CourseInstance WHERE PrerequisiteInformation.CourseID=CourseInstance.CourseID AND CourseInstance.ID='$courseInstanceID' ORDER BY IsCorequisite ASC;";
-$result = mysql_query($query, $con);
-if (mysql_num_rows($result) != 0)
+try
+{
+	$sth->prepare(	"SELECT Dept, CourseNumber, IsCorequisite " .
+					"FROM	PrerequisiteInformation AS PI, " .
+							"CourseInstance AS CI" .
+					"WHERE	PI.CourseID=CI.CourseID AND " .
+							"CI.ID=:id " .
+					"ORDER BY IsCorequisite ASC");
+	$sth->bindParam(':id', $courseInstanceID);
+	$sth->execute();
+}
+catch (PDOException $e)
+{
+	die('PDOException: ' . $e->getMessage());
+}
+
+$rows = $sth->fetchAll();
+if (sizeof($rows) > 0)
 {
 	$first = true;
 	$prevCoreq = false;
-	while ($row = mysql_fetch_array($result))
+	foreach ($rows as $row)
 	{
-		if ($first AND ($row['IsCorequisite'] == 0))
+		if ($first AND ($row->IsCorequisite == 0))
 		{
 			print '<h3>Prerequisites</h3><ul>';
 		}
 		
-		if (!$prevCoreq AND ($row['IsCorequisite'] == 1))
+		if (!$prevCoreq AND ($row->IsCorequisite == 1))
 		{
 			if (!$first)
 			{
@@ -91,7 +120,7 @@ if (mysql_num_rows($result) != 0)
 			print '<h3>Corequisites</h3><ul>';
 		}
 		
-		print '<li>' . $row['Dept'] . ' ' . $row['CourseNumber'] . '</li>';
+		print '<li>' . $row->Dept . ' ' . $row->CourseNumber . '</li>';
 		$first = false;
 	}
 	
@@ -100,7 +129,9 @@ if (mysql_num_rows($result) != 0)
 
 if ($state == 'Finalized')
 {
-	print '<p>ABET information for this course has already been finalized and may no longer be revised. If you need to fix an error, please contact <a href="mailto:foobar@gmail.com">foobar</a>.<p>';
+	print '<p>ABET information for this course has already been finalized ' .
+		'and may no longer be revised. If you need to fix an error, please ' .
+		'contact <a href="mailto:foobar@gmail.com">foobar</a>.<p>';
 }
 
 if (isset($_REQUEST['error']))
@@ -112,7 +143,8 @@ if (isset($_REQUEST['error']))
 		break;
 		
 	case 3:
-		print 'You must provide how/where the outcome is assessed before approving.';
+		print 'You must provide how/where the outcome is assessed before ' .
+			'approving.';
 		break;
 		
 	case 4:
@@ -124,7 +156,8 @@ if (isset($_REQUEST['error']))
 		break;
 		
 	case 6:
-		print 'You must provide how/where the outcome is assessed before finalizing.';
+		print 'You must provide how/where the outcome is assessed before ' .
+			'finalizing.';
 		break;
 		
 	case 7:
@@ -200,12 +233,21 @@ print '<th>Median Score</th>';
 print '<th>High Score</th>';
 print '<th>Satisfactory Score**</th>';
 print '</tr></thead><tbody>';
-	
-$query = "SELECT * FROM CourseInstanceCLOInformation WHERE CourseInstanceID='$courseInstanceID';";
-$result = mysql_query($query, $con);
+
+try
+{
+	$sth = $dbh->prepare(	"SELECT * FROM CourseInstanceCLOInformation " .
+							"WHERE CourseInstanceID=:id");
+	$sth->bindParam(':id', $courseInstanceID);
+	$sth->execute();
+}
+catch (PDOException $e)
+{
+	die('PDOException: ' . $e->getMessage());
+}
 
 $i = 0;
-while ($row = mysql_fetch_array($result))
+while ($row = $sth->fetch())
 {
 	if (($i % 2) == 1)
 	{
@@ -216,57 +258,57 @@ while ($row = mysql_fetch_array($result))
 		print '<tr>';
 	}
 	
-	print '<td>' . $row['CLONumber'] . '</td>';
-	print '<td>' . $row['Description'] . '</td>';
-	print '<td>' . $row['Outcomes'] . '</td>';
+	print '<td>' . $row->CLONumber . '</td>';
+	print '<td>' . $row->Description . '</td>';
+	print '<td>' . $row->Outcomes . '</td>';
 	
-	if ($row['Assessed'] == '')
+	if ($row->Assessed == '')
 	{
 		print '<td>N/A';
 	}
 	else
 	{
-		print '<td>' . $row['Assessed'];
+		print '<td>' . $row->Assessed;
 	}
 	print '</td>';
 	
-	if ($row['MeanScore'] == '')
+	if ($row->MeanScore == '')
 	{
 		print '<td>N/A';
 	}
 	else
 	{
-		print '<td>' . $row['MeanScore'] . '%';
+		print '<td>' . $row->MeanScore . '%';
 	}
 	print '</td>';
 	
-	if ($row['MedianScore'] == '')
+	if ($row->MedianScore == '')
 	{
 		print '<td>N/A';
 	}
 	else
 	{
-		print '<td>' . $row['MedianScore'] . '%';
+		print '<td>' . $row->MedianScore . '%';
 	}
 	print '</td>';
 	
-	if ($row['HighScore'] == '')
+	if ($row->HighScore == '')
 	{
 		print '<td>N/A';
 	}
 	else
 	{
-		print '<td>' . $row['HighScore'] . '%';
+		print '<td>' . $row->HighScore . '%';
 	}
 	print '</td>';
 	
-	if ($row['SatisfactoryScore'] == '')
+	if ($row->SatisfactoryScore == '')
 	{
 		print '<td>N/A';
 	}
 	else
 	{
-		print '<td>' . $row['SatisfactoryScore'] . '%';
+		print '<td>' . $row->SatisfactoryScore . '%';
 	}
 	print '</td>';
 	
@@ -286,11 +328,17 @@ while ($row = mysql_fetch_array($result))
 		print '<td>&nbsp;</td>';
 		print '<td>Request change</td>';
 		print '<td>&nbsp;</td>';
-		print '<td><input type="text" name="assessed[' . $row['CLOID'] . ']" /></td>';
+		
+		print '<td><input type="text" name="assessed[' . $row->CLOID .
+			']" /></td>';
+			
 		print '<td>Locked until end of term.</td>';
 		print '<td>Locked until end of term.</td>';
 		print '<td>Locked until end of term.</td>';
-		print '<td><input type="text" name="satisfactory[' . $row['CLOID'] . ']" /></td>';
+		
+		print '<td><input type="text" name="satisfactory[' . $row->CLOID .
+			']" /></td>';
+			
 		print '</tr>';
 		break;
 	case 'Ready':
@@ -305,11 +353,20 @@ while ($row = mysql_fetch_array($result))
 		print '<td>&nbsp;</td>';
 		print '<td>Request change</td>';
 		print '<td>&nbsp;</td>';
-		print '<td><input type="text" name="assessed[' . $row['CLOID'] . ']" /></td>';
-		print '<td><input type="text" name="mean[' . $row['CLOID'] . ']" /></td>';
-		print '<td><input type="text" name="median[' . $row['CLOID'] . ']" /></td>';
-		print '<td><input type="text" name="high[' . $row['CLOID'] . ']" /></td>';
-		print '<td><input type="text" name="satisfactory[' . $row['CLOID'] . ']" /></td>';
+		
+		print '<td><input type="text" name="assessed[' . $row->CLOID . ']" />' .
+			'</td>';
+			
+		print '<td><input type="text" name="mean[' . $row->CLOID . ']" /></td>';
+		
+		print '<td><input type="text" name="median[' . $row->CLOID . ']" />' .
+			'</td>';
+			
+		print '<td><input type="text" name="high[' . $row->CLOID . ']" /></td>';
+		
+		print '<td><input type="text" name="satisfactory[' . $row->CLOID .
+			']" /></td>';
+		
 		print '</tr>';
 		break;
 	case 'Finalized':
@@ -326,7 +383,10 @@ print '<h2>Comments</h2>';
 if (($state == 'Ready') OR ($state == 'Finalized'))
 {
 	// CommentPrep //
-	print "<h3>Did the students in this course seem to have the preparation you expected? Describe any problems you observed in their preparation:</h3>";
+	print "<h3>Did the students in this course seem to have the preparation " .
+		"you expected? Describe any problems you observed in their " .
+		"preparation:</h3>";
+		
 	print '<textarea name="prep" cols="60" rows="10"';
 	if ($state != 'Ready')
 	{
@@ -339,7 +399,9 @@ if (($state == 'Ready') OR ($state == 'Finalized'))
 	print '</textarea>';
 
 	// CommentPrepActions //
-	print "<h3>Actions taken (if any) in response to the students' level of preparation:</h3>";
+	print "<h3>Actions taken (if any) in response to the students' level of " .
+		"preparation:</h3>";
+		
 	print '<textarea name="prepActions" cols="60" rows="10"';
 	if ($state != 'Ready')
 	{
@@ -352,7 +414,9 @@ if (($state == 'Ready') OR ($state == 'Finalized'))
 	print '</textarea>';
 
 	// CommentChanges //
-	print "<h3>What other changes did you make compared with the last time this course was taught?</h3>";
+	print "<h3>What other changes did you make compared with the last time " .
+		"this course was taught?</h3>";
+		
 	print '<textarea name="changes" cols="60" rows="10"';
 	if ($state != 'Ready')
 	{
@@ -365,7 +429,9 @@ if (($state == 'Ready') OR ($state == 'Finalized'))
 	print '</textarea>';
 
 	// CommentCLO //
-	print "<h3>Are there any other changes you recommend for the way that the CLOs are covered and/or assessed?</h3>";
+	print "<h3>Are there any other changes you recommend for the way that " .
+		"the CLOs are covered and/or assessed?</h3>";
+		
 	print '<textarea name="clo" cols="60" rows="10"';
 	if ($state != 'Ready')
 	{
@@ -411,8 +477,6 @@ if ($state != 'Finalized')
 {
 	print '</form>';
 }
-
-mysql_close($con);
 
 ?>
 

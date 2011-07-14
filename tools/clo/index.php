@@ -59,23 +59,28 @@
 <body>
 <?php
 
+require_once '../../debug.php';
 require_once '../../db.php';
 
-$con = dbConnect();
-if (!con)
-{
-	die('Unable to connect to database: ' . mysql_error());
-}
+$dbh = dbConnect();
 
-$courseID = mysql_real_escape_string($_REQUEST['courseID']);
+$courseID = $_REQUEST['courseID'];
 
 print '<a href="../index.php?courseID=' . $courseID . '">Return to Adminstration Page</a>';
 
-$query = "SELECT * FROM CourseInformation WHERE CourseID='$courseID';";
-$result = mysql_query($query, $con);
-$row = mysql_fetch_array($result);
+try
+{
+	$sth = $dbh->prepare("SELECT * FROM CourseInformation WHERE CourseID=:id");
+	$sth->bindParam(':id', $courseID);
+	$sth->execute();
+}
+catch (PDOException $e)
+{
+	die('PDOException: ' . $e->getMessage);
+}
 
-print '<h1>Editing CLOs for ' . $row['Dept'] . ' ' . $row['CourseNumber'] . '</h1>';
+$row = $sth->fetch();
+print '<h1>Editing CLOs for ' . $row->Dept . ' ' . $row->CourseNumber . '</h1>';
 
 ?>
 <h2>Remove CLOs</h2>
@@ -105,17 +110,29 @@ if (isset($_REQUEST['error']) AND ($_REQUEST['error'] == 4))
 		<tbody>
 			<?php
 			
-			$query = "SELECT * FROM CourseCLOInformation WHERE CourseID='$courseID';";
-			$result = mysql_query($query, $con);
-			
-			while ($row = mysql_fetch_array($result))
+			try
 			{
-				$num = $row['CLONumber'];
+				$sth = $dbh->prepare(	"SELECT * " .
+										"FROM CourseCLOInformation " .
+										"WHERE CourseID=:id");
+									
+				$sth->bindParam(':id', $courseID);
+				$sth->execute();
+			}
+			catch (PDOException $e)
+			{
+				die('PDOException: ' . $e->getMessage());
+			}
+			
+			while ($row = $sth->fetch())
+			{
+				$num = $row->CLONumber;
 				print '<tr>';
-				print '<td><input type="checkbox" name="remove[' . $row['CLOID'] . ']" /></td>';
+				print '<td><input type="checkbox" name="remove[' . $row->CLOID .
+					']" /></td>';
 				print '<td>' . $num . '</td>';
-				print '<td>' . $row['Description'] . '</td>';
-				print '<td>' . $row['Outcomes'] . '</td>';
+				print '<td>' . $row->Description . '</td>';
+				print '<td>' . $row->Outcomes . '</td>';
 				print '</tr>';
 			}
 			
@@ -146,25 +163,35 @@ if (isset($_REQUEST['error']) AND ($_REQUEST['error'] == 3))
 		<tbody>
 			<?php
 			
-			$query = "SELECT * FROM CourseCLOInformation WHERE CourseID='$courseID';";
-			$result = mysql_query($query, $con);
-			
-			while ($row = mysql_fetch_array($result))
+			try
 			{
-				$num = $row['CLONumber'];
-				print '<tr id="' . $num . '">';
-				
-				print	'<td><span>' . $num . '</span>' .
-						'<input type="hidden" name="number[' . $row['CLOID'] . ']" value="' . $num . '" />' .
-						'<button type="button" onclick="moveDown(' . $num . ')">+</button>' .
-						'<button type="button" onclick="moveUp(' . $num . ')">-</button></td>';
-				
-				print '<td>' . $row['Description'] . '</td>';
-				print '<td>' . $row['Outcomes'] . '</td>';
-				print '</tr>';
+				$sth = $dbh->prepare(	"SELECT * FROM CourseCLOInformation " .
+										"WHERE CourseID=:id");
+				$sth->bindParam(':id', $courseID);
+				$sth->execute();
+			}
+			catch (PDOException $e)
+			{
+				die('PDOException: ' . $e->getMessage());
 			}
 			
-			mysql_close($con);
+			while ($row = $sth->fetch())
+			{
+				$num = $row->CLONumber;
+				print '<tr id="' . $num . '">';
+				
+				print '<td><span>' . $num . '</span>' .
+					'<input type="hidden" name="number[' . $row->CLOID . ']" ' .
+					'value="' . $num . '" />' .
+					'<button type="button" onclick="moveDown(' . $num .	')">' .
+					'+</button>' .
+					'<button type="button" onclick="moveUp(' . $num . ')">' .
+					'-</button></td>';
+				
+				print '<td>' . $row->Description . '</td>';
+				print '<td>' . $row->Outcomes . '</td>';
+				print '</tr>';
+			}
 			
 			?>
 		</tbody>
@@ -177,17 +204,21 @@ if (isset($_REQUEST['error']) AND ($_REQUEST['error'] == 3))
 
 if (isset($_REQUEST['error']) AND ($_REQUEST['error'] == 1))
 {
-	print '<p class="error">You must provide at least one ABET outcome for a CLO.</p>';
+	print '<p class="error">You must provide at least one ABET outcome for a ' .
+		'CLO.</p>';
 }
 
 ?>
 <p>
-	Note: In order to preserve CLO history, it is not possible to edit a CLO. If you would like to change the details of a courses CLO, you must create a new CLO, and delete the old one.
+	Note: In order to preserve CLO history, it is not possible to edit a CLO. If
+	you would like to change the details of a courses CLO, you must create a new
+	CLO, and delete the old one.
 </p>
 
 <form action="create.php?courseID=<?php echo $courseID; ?>" method="POST">
 	<label for="description">Description</label>
-	<textarea id="description" name="description" cols="60" rows="10"></textarea>
+	<textarea id="description" name="description" cols="60" rows="10">
+	</textarea>
 	
 	<label for="outcomes">ABET Outcomes</label>
 	<input id="outcomes" type="text" name="outcomes" />

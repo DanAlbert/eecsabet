@@ -2,26 +2,31 @@
 
 function dbConnect()
 {
-	$hostname = 'engr-db.engr.oregonstate.edu:3307';
+	$driver = 'mysql';
+	$hostname = 'engr-db.engr.oregonstate.edu';
 	$username = 'eecsabet';
 	$password = 'OPtbHauT';
 	$database = 'eecsabet';
+	$port = 3307;
 	
-	// 131072: CLIENT_MULTI_RESULTS
-	$con = mysql_connect($hostname, $username, $password, TRUE, 131072);
-	if (!$con)
+	try
 	{
-		mysql_close($con);
-		return null;
+		$dbh = new PDO(
+			"$driver:host=$hostname;port=$port;dbname=$database",
+			$username,
+			$password,
+			array(	PDO::ATTR_PERSISTENT => true,
+					PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION));
 	}
-
-	if (!mysql_select_db($database))
+	catch (PDOException $e)
 	{
-		mysql_close($con);
-		return null;
+		die('Unable to connect to database (' . $e->getCode() . '): ' .
+			$e->getMessage());
 	}
 	
-	return $con;
+	$dbh->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_OBJ);
+	
+	return $dbh;
 }
 
 ?>

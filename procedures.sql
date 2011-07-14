@@ -2,20 +2,23 @@ DELIMITER $$
 DROP PROCEDURE IF EXISTS CreateInstructor$$
 CREATE PROCEDURE CreateInstructor(	IN pFirstName VARCHAR(255),
 									IN pLastName VARCHAR(255),
-									IN pEmail VARCHAR(255))
+									IN pEmail VARCHAR(255),
+									OUT pResult INT)
 BEGIN
 	DECLARE EXIT HANDLER FOR 1062
 	BEGIN
-		SELECT -2;
+		SET pResult = 2;
 	END;
 	
 	DECLARE EXIT HANDLER FOR SQLEXCEPTION, SQLWARNING
 	BEGIN
-		SELECT -1;
+		SET pResult = 1;
 	END;
 	
-	INSERT INTO Instructor (FirstName, LastName, Email) VALUES (pFirstName, pLastName, pEmail);
-	SELECT 1;
+	INSERT INTO Instructor (FirstName, LastName, Email)
+	VALUES (pFirstName, pLastName, pEmail);
+	
+	SET pResult = 0;
 END$$
 DELIMITER ;
 
@@ -26,33 +29,41 @@ CREATE PROCEDURE CreateCourse(	IN pDept VARCHAR(4),
 								IN pTitle VARCHAR(255),
 								IN pCreditHours INT,
 								IN pDescription TEXT,
-								IN pStructure TEXT)
+								IN pStructure TEXT,
+								OUT pCourseID INT)
 BEGIN
-	DECLARE courseID INT DEFAULT -1;
-	
 	DECLARE EXIT HANDLER FOR 1062
 	BEGIN
 		ROLLBACK;
-		SELECT -2;
+		SET pCourseID = -2;
 	END;
 	
 	DECLARE EXIT HANDLER FOR SQLEXCEPTION, SQLWARNING
 	BEGIN
 		ROLLBACK;
-		SELECT -1;
+		SET pCourseID = -1;
 	END;
 	
 	START TRANSACTION;
-	INSERT INTO Course (Dept, CourseNumber, Title, CreditHours, Description, Structure)
-	VALUES (pDept, pCourseNumber, pTitle, pCreditHours, pDescription, pStructure);
+	INSERT INTO Course (Dept,
+						CourseNumber,
+						Title,
+						CreditHours,
+						Description,
+						Structure)
+	VALUES (pDept,
+			pCourseNumber,
+			pTitle,
+			pCreditHours,
+			pDescription,
+			pStructure);
 	
-	SELECT ID INTO courseID FROM Course WHERE Dept=pDept AND CourseNumber=pCourseNumber ORDER BY ID ASC;
+	SELECT LAST_INSERT_ID() INTO pCourseID;
 		
-	INSERT INTO TermsOffered (CourseID, Summer, Fall, Winter, Spring) VALUES (courseID, '0', '0', '0', '0');
+	INSERT INTO TermsOffered (CourseID, Summer, Fall, Winter, Spring)
+	VALUES (pCourseID, '0', '0', '0', '0');
 
 	COMMIT;
-	SELECT courseID;
-
 END$$
 DELIMITER ;
 
@@ -71,7 +82,9 @@ BEGIN
 		SELECT -1;
 	END;
 	
-	INSERT INTO CourseContent (CourseID, Content) VALUES (pCourseID, pContent);
+	INSERT INTO CourseContent (CourseID, Content)
+	VALUES (pCourseID, pContent);
+	
 	SELECT 1;
 END$$
 DELIMITER ;
@@ -91,7 +104,9 @@ BEGIN
 		SELECT -1;
 	END;
 	
-	INSERT INTO LearningResources (CourseID, Resource) VALUES (pCourseID, pResource);
+	INSERT INTO LearningResources (CourseID, Resource)
+	VALUES (pCourseID, pResource);
+	
 	SELECT 1;
 END$$
 DELIMITER ;
@@ -109,7 +124,10 @@ BEGIN
 		SELECT -1;
 	END;
 	
-	UPDATE TermsOffered SET Summer=pSummer, Fall=pFall, Winter=pWinter, Spring=pSpring WHERE CourseID=pCourseID;
+	UPDATE TermsOffered
+	SET Summer=pSummer, Fall=pFall, Winter=pWinter, Spring=pSpring
+	WHERE CourseID=pCourseID;
+	
 	SELECT 1;
 END$$
 DELIMITER ;
@@ -123,7 +141,9 @@ BEGIN
 		SELECT -1;
 	END;
 	
-	DELETE FROM CourseContent WHERE ID=pID;
+	DELETE FROM CourseContent
+	WHERE ID=pID;
+	
 	SELECT 1;
 END$$
 DELIMITER ;
@@ -137,7 +157,9 @@ BEGIN
 		SELECT -1;
 	END;
 	
-	DELETE FROM LearningResources WHERE ID=pID;
+	DELETE FROM LearningResources
+	WHERE ID=pID;
+	
 	SELECT 1;
 END$$
 DELIMITER ;
@@ -153,7 +175,9 @@ BEGIN
 		SELECT -1;
 	END;
 	
-	INSERT INTO CourseInstance (CourseID, Instructor, TermID) VALUES (pCourseID, pInstructor, pTermID);
+	INSERT INTO CourseInstance (CourseID, Instructor, TermID)
+	VALUES (pCourseID, pInstructor, pTermID);
+	
 	SELECT 1;
 END$$
 DELIMITER ;
@@ -167,7 +191,10 @@ BEGIN
 		SELECT -1;
 	END;
 	
-	UPDATE TermState SET State='Finalized' WHERE TermID=pTermID;
+	UPDATE TermState
+	SET State='Finalized'
+	WHERE TermID=pTermID;
+	
 	SELECT 1;
 END$$
 DELIMITER ;
@@ -176,8 +203,9 @@ DELIMITER $$
 DROP PROCEDURE IF EXISTS GetInstructorsByTerm$$
 CREATE PROCEDURE GetInstructorsByTerm(IN pTermID INT)
 BEGIN
-	SELECT DISTINCT	CONCAT (Instructor.FirstName, ' ', Instructor.LastName) AS Name,
-							Instructor.Email
+	SELECT DISTINCT
+		CONCAT (Instructor.FirstName, ' ', Instructor.LastName) AS Name,
+		Instructor.Email
 	FROM CourseInstance, Instructor
 	WHERE	CourseInstance.TermID=pTermID AND
 			Instructor.Email=CourseInstance.Instructor;
@@ -204,7 +232,8 @@ DELIMITER $$
 DROP PROCEDURE IF EXISTS CreateCLO$$
 CREATE PROCEDURE CreateCLO(	IN pCourseID INT,
 							IN pDescription TEXT(255),
-							IN pOutcomes VARCHAR(255))
+							IN pOutcomes VARCHAR(255),
+							OUT pResult INT)
 BEGIN
 	DECLARE cloNumber INT DEFAULT 1;
 	DECLARE cloID INT DEFAULT -1;
@@ -214,7 +243,7 @@ BEGIN
 	DECLARE EXIT HANDLER FOR SQLEXCEPTION, SQLWARNING
 	BEGIN
 		ROLLBACK;
-		SELECT -1;
+		SET pResult = 0;
 	END;
 	
 	START TRANSACTION;
@@ -228,10 +257,13 @@ BEGIN
 		SET cloNumber = 1;
 	END IF;
 	
-	INSERT INTO CLO (CourseID, CLONumber, Description) VALUES (pCourseID, cloNumber, pDescription);
+	INSERT INTO CLO (CourseID, CLONumber, Description)
+	VALUES (pCourseID, cloNumber, pDescription);
+	
 	SELECT LAST_INSERT_ID() INTO cloID;
 	
-	INSERT INTO MasterCLO (CLOID, CourseID) VALUES (cloID, pCourseID);
+	INSERT INTO MasterCLO (CLOID, CourseID)
+	VALUES (cloID, pCourseID);
 	
 	label: WHILE i<=CHAR_LENGTH(pOutcomes) DO
 		CALL AssociateOutcome(cloID, SUBSTR(pOutcomes FROM i FOR 1), success);
@@ -245,7 +277,7 @@ BEGIN
 	END WHILE;
 	
 	COMMIT;
-	SELECT success;
+	SET pResult = success;
 END$$
 DELIMITER ;
 
@@ -284,9 +316,14 @@ BEGIN
 			MasterCLO.CLOID AS CLOID,
 			CLO.CLONumber,
 			CLO.Description,
-			GROUP_CONCAT(DISTINCT Outcomes.Outcome ORDER BY Outcomes.Outcome ASC SEPARATOR ', ') AS Outcomes
+			GROUP_CONCAT(
+				DISTINCT Outcomes.Outcome
+				ORDER BY Outcomes.Outcome ASC SEPARATOR ', ') AS Outcomes
 	FROM MasterCLO, CLO, CLOOutcomes, Outcomes
-	WHERE MasterCLO.CourseID=CLO.CourseID AND MasterCLO.CLOID=CLO.ID AND CLOOutcomes.CLOID=CLO.ID AND CLOOutcomes.OutcomeID=Outcomes.ID
+	WHERE	MasterCLO.CourseID=CLO.CourseID AND
+			MasterCLO.CLOID=CLO.ID AND
+			CLOOutcomes.CLOID=CLO.ID AND
+			CLOOutcomes.OutcomeID=Outcomes.ID
 	GROUP BY MasterCLO.CourseID, CLOOutcomes.CLOID
 	ORDER BY MasterCLO.CourseID, CLO.CLONumber;
 END$$
