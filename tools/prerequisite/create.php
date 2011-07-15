@@ -1,66 +1,84 @@
 <?php
 
+include_once '../../debug.php';
 require_once '../../db.php';
 
-$con = dbConnect();
-if (!con)
-{
-	die('Unable to connect to database: ' . mysql_error());
-}
+$dbh = dbConnect();
 
-$courseID = mysql_real_escape_string($_REQUEST['courseID']);
-$prerequisiteID = mysql_real_escape_string($_POST['prerequisiteID']);
-$alts = $_POST['alt'];
-$isCorequisite = mysql_real_escape_string($_POST['isCorequisite']);
+$courseID = $_REQUEST['courseID'];
+$prerequisiteID = $_POST['prerequisiteID'];
 
 $isCoreq = 0;
-if ($isCorequisite == 'on')
+if (isset($_POST['isCorequisite']) AND ($_POST['isCorequisite'] == 'on'))
 {
 	$isCoreq = 1;
 }
 
-mysql_query('START TRANSACTION;');
+try
+{
+	$dbh->beginTransaction();
+}
+catch (PDOException $e)
+{
+	die('PDOException: ' . $e->getMessage());
+}
 
 // Insert into Prerequisites
-$query = "INSERT INTO Prerequisites (CourseID, PrerequisiteID, IsCorequisite) VALUES ('$courseID', '$prerequisiteID', '$isCoreq');";
-if (mysql_query($query, $con) === false)
+try
 {
-	print 'Could not insert into Prerequisites: ' . mysql_error() . '<br />';
-	print $query;
-	mysql_query('ROLLBACK;');
-	mysql_close($con);
-	return;
+	$sth = $dbh->prepare(
+		"INSERT INTO Prerequisites (CourseID, PrerequisiteID, IsCorequisite) " .
+		"VALUES (:course, :prereq, :coreq)");
+	
+	$sth->bindParam(':course', $courseID);
+	$sth->bindParam(':prereq', $prerequisiteID);
+	$sth->bindParam(':coreq', $isCoreq);
+	
+	$sth->execute();
+}
+catch (PDOException $e)
+{
+	$dbh->rollback();
+	die('PDOException: ' . $e->getMessage());
 }
 
-if (sizeof($alts) > 0)
+if (isset($_POST['alt']))
 {
+	$alts = $_POST['alt'];
+	
 	// Insert into PrerequisiteAlternatives
-	$first = true;
-	$query = "INSERT INTO PrerequisiteAlternatives (CourseID, PrerequisiteID, AlternativeID) VALUES ";
+	try
+	{
+		$sth = $dbh->prepare(
+			"INSERT INTO PrerequisiteAlternatives " .
+			"(CourseID, PrerequisiteID, AlternativeID) " .
+			"VALUES (:course, :prereq, :alt), (:course, :alt, :prereq)");
+		
+		$sth->bindParam(':course', $courseID);
+		$sth->bindParam(':prereq', $prerequisiteID);
+		$sth->bindParam(':alt', $alt);
+	}
+	catch (PDOException $e)
+	{
+		$dbh->rollback();
+		die('PDOException: ' . $e->getMessage());
+	}
+	
 	foreach ($alts as $alt)
 	{
-		if (!$first)
+		try
 		{
-			$query .= ", ";
+			$sth->execute();
 		}
-		$query .= "('$courseID', '$prerequisiteID', '$alt'), ('$courseID', '$alt', '$prerequisiteID')";
-		$first = false;
-	}
-	$query .= ";";
-
-	if (mysql_query($query, $con) === false)
-	{
-		print 'Could not insert into PrerequisiteAlternatives: ' . mysql_error() . '<br />';
-		print $query;
-		mysql_query('ROLLBACK;');
-		mysql_close($con);
-		return;
+		catch (PDOException $e)
+		{
+			$dbh->rollback();
+			die('PDOException: ' . $e->getMessage());
+		}
 	}
 }
 
-mysql_query('COMMIT;');
-
-mysql_close($con);
+$dbh->commit();
 
 header('Location: index.php?courseID=' . $courseID);
 

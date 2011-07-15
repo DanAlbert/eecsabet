@@ -1,14 +1,11 @@
 <?php
 
+include_once '../../debug.php';
 require_once '../../db.php';
 
-$con = dbConnect();
-if (!con)
-{
-	die('Unable to connect to database: ' . mysql_error());
-}
+$dbh = dbConnect();
 
-$courseID = mysql_real_escape_string($_REQUEST['courseID']);
+$courseID = $_REQUEST['courseID'];
 $remove = $_POST['remove'];
 
 $toRemove = array();
@@ -27,55 +24,73 @@ if (sizeof($toRemove) == 0)
 	return;
 }
 
-mysql_query('START TRANSACTION;');
+try
+{
+	$dbh->beginTransaction();
+}
+catch (PDOException $e)
+{
+	die('PDOException: ' . $e->getMessage());
+}
 
 // Delete from Prerequisites
-$query = "DELETE FROM Prerequisites WHERE CourseID='$courseID' AND (";
-$first = true;
-foreach ($toRemove as $id)
+try
 {
-	if (!$first)
-	{
-		$query .= " OR ";
-	}
-	$query .= "PrerequisiteID='$id'";
-	$first = false;
+	$sth = $dbh->prepare(
+		"DELETE FROM Prerequisites " .
+		"WHERE CourseID=:course AND PrerequisiteID=:prereq");
+	
+	$sth->bindParam(':course', $courseID);
+	$sth->bindParam(':prereq', $prereq);
 }
-$query .= ');';
-
-if (mysql_query($query, $con) === false)
+catch (PDOException $e)
 {
-	print mysql_error();
-	mysql_query('ROLLBACK;');
-	mysql_close($con);
-	return;
+	die('PDOException: ' . $e->getMessage());
+}
+
+foreach ($toRemove as $prereq)
+{
+	try
+	{
+		$sth->execute();
+	}
+	catch (PDOException $e)
+	{
+		$dbh->rollback();
+		die('PDOException: ' . $e->getMessage());
+	}
 }
 
 // Delete from PrerequisiteAlternatives
-$query = "DELETE FROM PrerequisiteAlternatives WHERE CourseID='$courseID' AND (";
-$first = true;
-foreach ($toRemove as $id)
+try
 {
-	if (!$first)
+	$sth = $dbh->prepare(
+		"DELETE FROM PrerequisiteAlternatives " .
+		"WHERE	 CourseID=:course AND " .
+				"(PrerequisiteID=:prereq OR AlternativeID=:prereq)");
+	
+	$sth->bindParam(':course', $courseID);
+	$sth->bindParam(':prereq', $prereq);
+}
+catch (PDOException $e)
+{
+	die('PDOException: ' . $e->getMessage());
+}
+
+foreach ($toRemove as $prereq)
+{
+	try
 	{
-		$query .= " OR ";
+		$sth->execute();
 	}
-	$query .= "PrerequisiteID='$id' OR AlternativeID='$id'";
-	$first = false;
-}
-$query .= ');';
-
-if (mysql_query($query, $con) === false)
-{
-	print mysql_error();
-	mysql_query('ROLLBACK;');
-	mysql_close($con);
-	return;
+	catch (PDOException $e)
+	{
+		$dbh->rollback();
+		die('PDOException: ' . $e->getMessage());
+	}
 }
 
-mysql_query('COMMIT;');
-
-mysql_close($con);
+$dbh->commit();
 
 header('Location: index.php?courseID=' . $courseID);
 
