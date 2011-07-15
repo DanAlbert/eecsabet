@@ -1,6 +1,6 @@
 <?php
 
-require_once '../../debug.php';
+include_once '../../debug.php';
 require_once '../../db.php';
 
 $dbh = dbConnect();
@@ -37,7 +37,7 @@ case 0:
 	header('Location: ../index.php');
 	break;
 
-case 2:
+case -2:
 	print "$email already exists in the database.";
 	return;
 	

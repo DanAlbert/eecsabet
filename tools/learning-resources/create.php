@@ -1,36 +1,42 @@
 <?php
 
+include_once '../../debug.php';
 require_once '../../db.php';
 
-$con = dbConnect();
-if (!con)
-{
-	die('Unable to connect to database: ' . mysql_error());
-}
+$dbh = dbConnect();
 
-$courseID = mysql_real_escape_string($_REQUEST['courseID']);
-$resource = mysql_real_escape_string($_POST['resource']);
+$courseID = $_REQUEST['courseID'];
+$resource = $_POST['resource'];
 
 // Insert LearningResources
-$query = "CALL CreateLearningResource('$courseID', '$resource');";
-$result = mysql_query($query, $con);
-$row = mysql_fetch_array($result);
-switch ($row[0])
+try
 {
-case 1:
-	mysql_close($con);
+	$sth =
+		$dbh->prepare("CALL CreateLearningResource(:id, :resource, @result)");
+	
+	$sth->bindParam(':id', $courseID);
+	$sth->bindParam(':resource', $resource);
+	
+	$sth->execute();
+}
+catch (PDOException $e)
+{
+	die('PDOException: ' . $e->getmessage());
+}
+
+switch ($dbh->query("SELECT @result AS result")->fetch()->result)
+{
+case 0:
 	header('Location: index.php?courseID=' . $courseID);
 	break;
 
 case -2:
-	mysql_close($con);
 	print "$resource already exists in the database for this course.";
-	return;
+	break;
 	
 default:
 	print 'An error occured while creating the new learning resource.';
-	mysql_close($con);
-	return;
+	break;
 }
 
 ?>

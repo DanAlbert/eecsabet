@@ -1,54 +1,55 @@
 <?php
 
+include_once '../../debug.php';
 require_once '../../db.php';
 
-$con = dbConnect();
-if (!con)
-{
-	die('Unable to connect to database: ' . mysql_error());
-}
+$dbh = dbConnect();
 
-$courseID = mysql_real_escape_string($_REQUEST['courseID']);
+$courseID = $_REQUEST['courseID'];
 
 $summer = 0;
 $fall = 0;
 $winter = 0;
 $spring = 0;
 
-if ($_REQUEST['summer'] == 'on')
+if (isset($_REQUEST['summer']) && ($_REQUEST['summer'] == 'on'))
 {
 	$summer = 1;
 }
 
-if ($_REQUEST['fall'] == 'on')
+if (isset($_REQUEST['fall']) && ($_REQUEST['fall'] == 'on'))
 {
 	$fall = 1;
 }
 
-if ($_REQUEST['winter'] == 'on')
+if (isset($_REQUEST['winter']) && ($_REQUEST['winter'] == 'on'))
 {
 	$winter = 1;
 }
 
-if ($_REQUEST['spring'] == 'on')
+if (isset($_REQUEST['spring']) && ($_REQUEST['spring'] == 'on'))
 {
 	$spring = 1;
 }
 
-$query = "CALL UpdateTermsOffered('$courseID', '$summer', '$fall', '$winter', '$spring');";
-$result = mysql_query($query, $con);
-$row = mysql_fetch_array($result);
-switch ($row[0])
+try
 {
-case 1:
-	mysql_close($con);
-	header('Location: ../index.php?courseID=' . $courseID);
-	break;
+	$sth = $dbh->prepare(
+		"CALL UpdateTermsOffered(:id, :summer, :fall, :winter, :spring)");
 	
-default:
-	print 'An error occured while updating the terms this course is offered.';
-	mysql_close($con);
-	return;
+	$sth->bindParam(':id', $courseID);
+	$sth->bindParam(':summer', $summer);
+	$sth->bindParam(':fall', $fall);
+	$sth->bindParam(':winter', $winter);
+	$sth->bindParam(':spring', $spring);
+	
+	$sth->execute();
 }
+catch (PDOException $e)
+{
+	die('PDOException: ' . $e->getMessage());
+}
+
+header('Location: ../index.php?courseID=' . $courseID);
 
 ?>

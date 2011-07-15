@@ -1,6 +1,6 @@
 <?php
 
-require_once 'debug.php';
+include_once 'debug.php';
 require_once 'db.php';
 
 $dbh = dbConnect();

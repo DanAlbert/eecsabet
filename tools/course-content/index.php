@@ -7,23 +7,31 @@
 <body>
 <?php
 
+include_once '../../debug.php';
 require_once '../../db.php';
 
-$con = dbConnect();
-if (!con)
+$dbh = dbConnect();
+
+$courseID = $_REQUEST['courseID'];
+
+print '<a href="../index.php?courseID=' . $courseID . '">Return to ' .
+	'Adminstration Page</a>';
+
+try
 {
-	die('Unable to connect to database: ' . mysql_error());
+	$sth = $dbh->prepare("SELECT * FROM CourseInformation WHERE CourseID=:id");
+	$sth->bindParam(':id', $courseID);
+	$sth->execute();
+}
+catch (PDOException $e)
+{
+	die('PDOException: ' . $e->getmessage());
 }
 
-$courseID = mysql_real_escape_string($_REQUEST['courseID']);
+$row = $sth->fetch();
 
-print '<a href="../index.php?courseID=' . $courseID . '">Return to Adminstration Page</a>';
-
-$query = "SELECT * FROM CourseInformation WHERE CourseID='$courseID';";
-$result = mysql_query($query, $con);
-$row = mysql_fetch_array($result);
-
-print '<h1>Editing Course Content for ' . $row['Dept'] . ' ' . $row['CourseNumber'] . '</h1>';
+print '<h1>Editing Course Content for ' . $row->Dept . ' ' . 
+	$row->CourseNumber . '</h1>';
 
 ?>
 <h2>Remove Content</h2>
@@ -46,14 +54,28 @@ if (isset($_REQUEST['error']) AND ($_REQUEST['error'] == 2))
 		<tbody>
 			<?php
 			
-			$query = "SELECT ID, Content FROM CourseContent WHERE CourseID='$courseID';";
-			$result = mysql_query($query, $con);
+			try
+			{
+				$sth = $dbh->prepare(
+					"SELECT ID, Content " .
+					"FROM CourseContent " .
+					"WHERE CourseID=:id");
+				
+				$sth->bindParam(':id', $courseID);
+				$sth->execute();
+			}
+			catch (PDOException $e)
+			{
+				die('PDOException: ' . $e->getmessage());
+			}
 			
-			while ($row = mysql_fetch_array($result))
+			while ($row = $sth->fetch())
 			{
 				print '<tr>';
-				print '<td><input type="checkbox" name="remove[' . $row['ID'] . ']" /></td>';
-				print '<td>' . $row['Content'] . '</td>';
+				print '<td><input type="checkbox" name="remove[' . $row->ID . 
+					']" /></td>';
+				
+				print '<td>' . $row->Content . '</td>';
 				print '</tr>';
 			}
 			

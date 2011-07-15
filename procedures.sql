@@ -7,12 +7,12 @@ CREATE PROCEDURE CreateInstructor(	IN pFirstName VARCHAR(255),
 BEGIN
 	DECLARE EXIT HANDLER FOR 1062
 	BEGIN
-		SET pResult = 2;
+		SET pResult = -2;
 	END;
 	
 	DECLARE EXIT HANDLER FOR SQLEXCEPTION, SQLWARNING
 	BEGIN
-		SET pResult = 1;
+		SET pResult = -1;
 	END;
 	
 	INSERT INTO Instructor (FirstName, LastName, Email)
@@ -70,44 +70,64 @@ DELIMITER ;
 DELIMITER $$
 DROP PROCEDURE IF EXISTS CreateCourseContent$$
 CREATE PROCEDURE CreateCourseContent(	IN pCourseID INT,
-										IN pContent VARCHAR(255))
+										IN pContent VARCHAR(255),
+										OUT pResult INT)
 BEGIN
 	DECLARE EXIT HANDLER FOR 1062
 	BEGIN
-		SELECT -2;
+		SET pResult = -2;
 	END;
 	
 	DECLARE EXIT HANDLER FOR SQLEXCEPTION, SQLWARNING
 	BEGIN
-		SELECT -1;
+		SET pResult = -1;
 	END;
 	
 	INSERT INTO CourseContent (CourseID, Content)
 	VALUES (pCourseID, pContent);
 	
-	SELECT 1;
+	SET pResult = 0;
 END$$
 DELIMITER ;
 
 DELIMITER $$
 DROP PROCEDURE IF EXISTS CreateLearningResource$$
 CREATE PROCEDURE CreateLearningResource(	IN pCourseID INT,
-											IN pResource VARCHAR(255))
+											IN pResource VARCHAR(255),
+											OUT pResult INT)
 BEGIN
 	DECLARE EXIT HANDLER FOR 1062
 	BEGIN
-		SELECT -2;
+		SET pResult = -2;
 	END;
 	
 	DECLARE EXIT HANDLER FOR SQLEXCEPTION, SQLWARNING
 	BEGIN
-		SELECT -1;
+		SET pResult = -1;
 	END;
 	
 	INSERT INTO LearningResources (CourseID, Resource)
 	VALUES (pCourseID, pResource);
 	
-	SELECT 1;
+	SET pResult = 0;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+DROP PROCEDURE IF EXISTS RemoveCourseContent$$
+CREATE PROCEDURE RemoveCourseContent(IN pID INT)
+BEGIN
+	DELETE FROM CourseContent
+	WHERE ID=pID;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+DROP PROCEDURE IF EXISTS RemoveLearningResource$$
+CREATE PROCEDURE RemoveLearningResource(IN pID INT)
+BEGIN
+	DELETE FROM LearningResources
+	WHERE ID=pID;
 END$$
 DELIMITER ;
 
@@ -119,48 +139,9 @@ CREATE PROCEDURE UpdateTermsOffered(	IN pCourseID INT,
 										IN pWinter BOOL,
 										IN pSpring BOOL)
 BEGIN
-	DECLARE EXIT HANDLER FOR SQLEXCEPTION, SQLWARNING
-	BEGIN
-		SELECT -1;
-	END;
-	
 	UPDATE TermsOffered
 	SET Summer=pSummer, Fall=pFall, Winter=pWinter, Spring=pSpring
 	WHERE CourseID=pCourseID;
-	
-	SELECT 1;
-END$$
-DELIMITER ;
-
-DELIMITER $$
-DROP PROCEDURE IF EXISTS RemoveCourseContent$$
-CREATE PROCEDURE RemoveCourseContent(IN pID INT)
-BEGIN
-	DECLARE EXIT HANDLER FOR SQLEXCEPTION, SQLWARNING
-	BEGIN
-		SELECT -1;
-	END;
-	
-	DELETE FROM CourseContent
-	WHERE ID=pID;
-	
-	SELECT 1;
-END$$
-DELIMITER ;
-
-DELIMITER $$
-DROP PROCEDURE IF EXISTS RemoveLearningResource$$
-CREATE PROCEDURE RemoveLearningResource(IN pID INT)
-BEGIN
-	DECLARE EXIT HANDLER FOR SQLEXCEPTION, SQLWARNING
-	BEGIN
-		SELECT -1;
-	END;
-	
-	DELETE FROM LearningResources
-	WHERE ID=pID;
-	
-	SELECT 1;
 END$$
 DELIMITER ;
 

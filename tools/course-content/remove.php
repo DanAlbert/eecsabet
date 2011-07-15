@@ -1,14 +1,11 @@
 <?php
 
+include_once '../../debug.php';
 require_once '../../db.php';
 
-$con = dbConnect();
-if (!con)
-{
-	die('Unable to connect to database: ' . mysql_error());
-}
+$dbh = dbConnect();
 
-$courseID = mysql_real_escape_string($_REQUEST['courseID']);
+$courseID = $_REQUEST['courseID'];
 $remove = $_POST['remove'];
 
 $toRemove = array();
@@ -27,40 +24,27 @@ if (sizeof($toRemove) == 0)
 	return;
 }
 
-foreach ($toRemove as $id)
+try
 {
-	$query = "CALL RemoveCourseContent('$id')";
-	$result = false;
-	
-	// Reconnect if connection is lost
-	if (mysql_ping($con) === false)
-	{
-		$con = dbConnect();
-		if (!con)
-		{
-			die('Unable to connect to database: ' . mysql_error());
-		}
-	}
-	
-	$result = mysql_query($query, $con);
-	$row = mysql_fetch_array($result);
-	switch ($row[0])
-	{
-	case -1:
-		print 'An error occured while removing the course content.';
-		mysql_close($con);
-		return;
-		
-	case 1:
-		break;
-		
-	default:
-		print $query . ': ERROR (' . mysql_errno() . ')<br />';
-		break;
-	}
+	$sth = $dbh->prepare("CALL RemoveCourseContent(:id)");
+}
+catch (PDOException $e)
+{
+	die('PDOException: ' . $e->getmessage());
 }
 
-mysql_close($con);
+foreach ($toRemove as $id)
+{
+	try
+	{
+		$sth->bindParam(':id', $id);
+		$sth->execute();
+	}
+	catch (PDOException $e)
+	{
+		die('PDOException: ' . $e->getmessage());
+	}
+}
 
 header('Location: index.php?courseID=' . $courseID);
 
