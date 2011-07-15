@@ -27,6 +27,7 @@ if (sizeof($toRemove) == 0)
 try
 {
 	$sth = $dbh->prepare("CALL RemoveLearningResource(:id)");
+	$sth->bindParam(':id', $id);
 }
 catch (PDOException $e)
 {
@@ -37,7 +38,6 @@ foreach ($toRemove as $id)
 {
 	try
 	{
-		$sth->bindParam(':id', $id);
 		$sth->execute();
 	}
 	catch (PDOException $e)

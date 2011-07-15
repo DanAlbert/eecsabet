@@ -1,28 +1,42 @@
 <?php
 
+include_once '../../debug.php';
 require_once '../../db.php';
 
 function generateABETSyllabus($courseID)
 {
-	$con = dbConnect();
-	if (!con)
+	$dbh = dbConnect();
+	
+	$courseID = $courseID;
+	
+	try
 	{
-		die('Unable to connect to database: ' . mysql_error());
+		$sth = $dbh->prepare(
+			"SELECT * " .
+			"FROM CourseInformation " .
+			"WHERE CourseID=:id");
+		
+		$sth->bindParam(':id', $courseID);
+		$sth->execute();
 	}
+	catch (PDOException $e)
+	{
+		die('PDOException: ' . $e->getMessage());
+	}
+	
+	$row = $sth->fetch();
 
-	$courseID = mysql_real_escape_string($courseID);
-
-	$query = "SELECT * FROM CourseInformation WHERE CourseID='$courseID';";
-	$result = mysql_query($query, $con);
-	$row = mysql_fetch_array($result);
-
-	$dept = $row['Dept'];
-	$num = $row['CourseNumber'];
-	$title = $row['Title'];
-	$descrip = $row['Description'];
-	$structure = $row['Structure'];
-	$credits = $row['CreditHours'];
-	$terms = array('Summer' => $row['Summer'], 'Fall' => $row['Fall'], 'Winter' => $row['Winter'], 'Spring' => $row['Spring']);
+	$dept = $row->Dept;
+	$num = $row->CourseNumber;
+	$title = $row->Title;
+	$descrip = $row->Description;
+	$structure = $row->Structure;
+	$credits = $row->CreditHours;
+	$terms = array(
+		'Summer' => $row->Summer,
+		'Fall' => $row->Fall,
+		'Winter' => $row->Winter,
+		'Spring' => $row->Spring);
 
 	$termsString = '';
 	$first =  true;
@@ -41,23 +55,36 @@ function generateABETSyllabus($courseID)
 		
 		next($terms);
 	}
-
+	
 	$prereqs = '';
 	$coreqs = '';
-
-	$query = "SELECT * FROM PrerequisiteAlternativesInformation WHERE CourseID='$courseID';";
-	$result = mysql_query($query, $con);
+	
+	try
+	{
+		$sth = $dbh->prepare(
+			"SELECT * " .
+			"FROM PrerequisiteAlternativesInformation " .
+			"WHERE CourseID=:id");
+		
+		$sth->bindParam(':id', $courseID);
+		$sth->execute();
+	}
+	catch (PDOException $e)
+	{
+		die('PDOException: ' . $e->getMessage());
+	}
+	
 	$firstPrereq = true;
 	$firstCoreq = true;
-	while ($row = mysql_fetch_array($result))
+	while ($row = $sth->fetch())
 	{
-		if ($row['IsCorequisite'])
+		if ($row->IsCorequisite)
 		{
 			if (!$firstCoreq)
 			{
 				$coreqs .= ', ';
 			}
-			$coreqs .= $row['Prerequisite'];
+			$coreqs .= $row->Prerequisite;
 			$firstCoreq = false;
 		}
 		else
@@ -66,106 +93,202 @@ function generateABETSyllabus($courseID)
 			{
 				$prereqs .= ', ';
 			}
-			$prereqs .= $row['Prerequisite'];
+			$prereqs .= $row->Prerequisite;
 			$firstPrereq = false;
 		}
 	}
-
+	
 	if (!$prereqs)
 	{
 		$prereqs = 'None';
 	}
-
+	
 	if (!$coreqs)
 	{
 		$coreqs = 'None';
 	}
-
-	$query = "SELECT GROUP_CONCAT(CONCAT(C1.Dept, ' ', C1.CourseNumber) SEPARATOR ', ') AS Courses FROM Course AS C1, Course AS C2, Prerequisites WHERE Prerequisites.PrerequisiteID=C2.ID AND Prerequisites.CourseID=C1.ID AND C2.ID='$courseID' GROUP BY C2.ID;";
-	$result = mysql_query($query, $con);
-
+	
+	try
+	{
+		$sth = $dbh->prepare(
+			"SELECT GROUP_CONCAT(" .
+				"CONCAT(C1.Dept, ' ', C1.CourseNumber) " .
+				"SEPARATOR ', ') AS Courses " .
+			"FROM Course AS C1, Course AS C2, Prerequisites " .
+			"WHERE	 Prerequisites.PrerequisiteID=C2.ID AND " .
+					"Prerequisites.CourseID=C1.ID AND " .
+					"C2.ID=:id " .
+			"GROUP BY C2.ID");
+		
+		$sth->bindParam(':id', $courseID);
+		$sth->execute();
+	}
+	catch (PDOException $e)
+	{
+		die('PDOException: ' . $e->getMessage());
+	}
+	
 	$reqThis = '';
-
-	if (mysql_num_rows($result) == 0)
+	
+	$rows = $sth->fetchAll();
+	if (sizeof($rows) == 0)
 	{
 		$reqThis = 'None.';
 	}
 	else
 	{
-		$row = mysql_fetch_array($result);
-		$reqThis = $row['Courses'];
+		$reqThis = $sth->fetch()->Courses;
 	}
-
-	$query = "	SELECT DISTINCT	FirstName,
-								LastName
-				FROM	Instructor,
-						CourseInstance
-				WHERE	CourseInstance.Instructor=Instructor.Email AND
-						CourseInstance.CourseID='2' AND
-						CourseInstance.TermID=(SELECT MAX(TermID) FROM CourseInstance WHERE CourseInstance.CourseID='2')
-				ORDER BY	LastName ASC,
-							FirstName ASC;";
-
-	$result = mysql_query($query, $con);
-	$instructors = array();
-	while ($row = mysql_fetch_array($result))
+	
+	try
 	{
-		$instructors[] = $row['FirstName'] . ' ' . $row['LastName'];
+		$sth = $dbh->prepare(
+			"SELECT DISTINCT	 FirstName, " .
+								"LastName " .
+			"FROM	 Instructor," .
+					"CourseInstance AS C1 " .
+			"WHERE	 C1.Instructor=Instructor.Email AND " .
+					"C1.CourseID=:id AND " .
+					"C1.TermID=(" .
+						"SELECT MAX(TermID) " .
+						"FROM CourseInstance AS C2 " .
+						"WHERE C1.CourseID=C2.CourseID) " .
+			"ORDER BY	 LastName ASC, " .
+						"FirstName ASC");
+		
+		$sth->bindParam(':id', $courseID);
+		$sth->execute();
 	}
-
+	catch (PDOException $e)
+	{
+		die('PDOException: ' . $e->getMessage());
+	}
+	
 	$instructorString = '';
 	$first = true;
-	foreach ($instructors as $instructor)
+	while ($row = $sth->fetch())
 	{
 		if (!$first)
 		{
 			$instructorString .= ', ';
 		}
 		
-		$instructorString .= $instructor;
+		$instructorString .= $row->FirstName . ' ' . $row->LastName;
 		$first = false;
 	}
-
+	
 	$content = array();
-	$query = "SELECT Content FROM CourseContent WHERE CourseID='$courseID';";
-	$result = mysql_query($query, $con);
-	while ($row = mysql_fetch_array($result))
+	try
 	{
-		$content[] = $row['Content'];
+		$sth = $dbh->prepare(
+			"SELECT Content " .
+			"FROM CourseContent " .
+			"WHERE CourseID=:id");
+		
+		$sth->bindParam(':id', $courseID);
+		$sth->execute();
 	}
-
+	catch (PDOException $e)
+	{
+		die('PDOException: ' . $e->getMessage());
+	}
+	
+	while ($row = $sth->fetch())
+	{
+		$content[] = $row->Content;
+	}
+	
 	$clos = array();
-
-	$query = "SELECT * FROM CourseCLOInformation WHERE CourseID='$courseID' ORDER BY CLONumber;";
-	$result = mysql_query($query, $con);
-	while ($row = mysql_fetch_array($result))
+	
+	try
 	{
-		$clos[] = $row['Description'] . ' (ABET Outcomes: ' . $row['Outcomes'] . ')';
+		$sth = $dbh->prepare(
+			"SELECT * " .
+			"FROM CourseCLOInformation " .
+			"WHERE CourseID=:id " .
+			"ORDER BY CLONumber");
+		
+		$sth->bindParam(':id', $courseID);
+		$sth->execute();
 	}
-
+	catch (PDOException $e)
+	{
+		die('PDOException: ' . $e->getMessage());
+	}
+	
+	while ($row = $sth->fetch())
+	{
+		$clos[] = $row->Description .
+			' (ABET Outcomes: ' . $row->Outcomes . ')';
+	}
+	
 	$resources = array();
-	$query = "SELECT Resource FROM LearningResources WHERE CourseID='$courseID';";
-	$result = mysql_query($query, $con);
-	while ($row = mysql_fetch_array($result))
+	try
 	{
-		$resources[] = str_replace("_", "\\_", $row['Resource']);;
+		$sth = $dbh->prepare(
+			"SELECT Resource AS Res " .
+			"FROM LearningResources " .
+			"WHERE CourseID=:id");
+		
+		$sth->bindparam(':id', $courseID);
+		$sth->execute();
 	}
-
-	$query = "SELECT LastRevision FROM SyllabusTimestamp;";
-	$result = mysql_query($query, $con);
-	$row = mysql_fetch_array($result);
-	$syllabusDate = makeDateString($row['LastRevision']);
-
-	$query = "SELECT Policy, LastRevision FROM DisabilitiesPolicy;";
-	$result = mysql_query($query, $con);
-	$row = mysql_fetch_array($result);
-	$policy = $row['Policy'];
-	$policyDate = makeDateString($row['LastRevision']);
-
-	$query = "SELECT URL FROM StudentConduct;";
-	$result = mysql_query($query, $con);
-	$row = mysql_fetch_array($result);
-	$conduct = $row['URL'];
+	catch (PDOException $e)
+	{
+		die('PDOException: ' . $e->getMessage());
+	}
+	
+	while ($row = $sth->fetch())
+	{
+		$resources[] = str_replace("_", "\\_", $row->Res);;
+	}
+	
+	try
+	{
+		$sth = $dbh->prepare(
+			"SELECT LastRevision " .
+			"FROM SyllabusTimestamp");
+		
+		$sth->execute();
+	}
+	catch (PDOException $e)
+	{
+		die('PDOException: ' . $e->getMessage());
+	}
+	
+	$syllabusDate = makeDateString($sth->fetch()->LastRevision);
+	
+	try
+	{
+		$sth = $dbh->prepare(
+			"SELECT Policy, LastRevision " .
+			"FROM DisabilitiesPolicy");
+		
+		$sth->execute();
+	}
+	catch (PDOException $e)
+	{
+		die('PDOException: ' . $e->getMessage());
+	}
+	
+	$row = $sth->fetch();
+	$policy = $row->Policy;
+	$policyDate = makeDateString($row->LastRevision);
+	
+	try
+	{
+		$sth = $dbh->prepare(
+			"SELECT URL " .
+			"FROM StudentConduct");
+		
+		$sth->execute();
+	}
+	catch (PDOException $e)
+	{
+		die('PDOException: ' . $e->getMessage());
+	}
+	
+	$conduct = $sth->fetch()->URL;
 
 	$contentString = '';
 	if (sizeof($content) > 0)
@@ -175,13 +298,14 @@ function generateABETSyllabus($courseID)
 			$contentString .= "\\item $c";
 		}
 	}
-
+	
 	$cloString = '';
 	foreach ($clos as $clo)
 	{
 		$cloString .= "\\item $clo";
 	}
-
+	
+	$resourceString = '';
 	if (sizeof($resources) > 0)
 	{
 		foreach ($resources as $r)
@@ -189,8 +313,6 @@ function generateABETSyllabus($courseID)
 			$resourceString .= "\\item $r";
 		}
 	}
-	
-	mysql_close($con);
 	
 	###############################################################################
 	$latex = '\documentclass[12pt]{article}
@@ -300,7 +422,7 @@ function generateABETSyllabus($courseID)
 function makeDateString($timestamp)
 {
 	$components = explode(' ', $timestamp);
-	$date = $policyComponents[0];
+	$date = $components[0];
 	$dateComponents = explode('-', $timestamp);
 
 	$year = $dateComponents[0] . '';

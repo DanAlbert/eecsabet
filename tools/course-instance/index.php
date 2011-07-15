@@ -11,37 +11,56 @@
 	
 	<?php
 	
+	include_once '../../debug.php';
 	require_once '../../db.php';
 	
-	$con = dbConnect();
-	if (!con)
-	{
-		die('Unable to connect to database: ' . mysql_error());
-	}
+	$dbh = dbConnect();
 	
 	print '<label for="course">Course</label>';
 	print '<select id="course" name="course">';
 	
-	$query = "SELECT ID, Dept, CourseNumber FROM Course;";
-	$result = mysql_query($query, $con);
-	while ($row = mysql_fetch_array($result))
+	try
 	{
-		print '<option value="' . $row['ID'] . '">' . $row['Dept'] . ' ' . $row['CourseNumber'] . '</option>';
+		$sth = $dbh->prepare(
+			"SELECT ID, Dept, CourseNumber " .
+			"FROM Course");
+		
+		$sth->execute();
+	}
+	catch (PDOException $e)
+	{
+		die('PDOException: ' . $e->getMessage());
+	}
+	
+	while ($row = $sth->fetch())
+	{
+		print '<option value="' . $row->ID . '">' . $row->Dept . ' ' .
+			$row->CourseNumber . '</option>';
 	}
 	print '</select>';
 	
 	print '<label for="instructor">Instructor</label>';
 	print '<select id="instructor" name="instructor">';
 	
-	$query = "SELECT CONCAT(FirstName, ' ', LastName) AS Name, Email FROM Instructor ORDER BY LastName ASC, FirstName ASC;";
-	$result = mysql_query($query, $con);
-	while ($row = mysql_fetch_array($result))
+	try
 	{
-		print '<option value="' . $row['Email'] . '">' . $row['Name'] . '</option>';
+		$sth = $dbh->prepare(
+			"SELECT CONCAT(FirstName, ' ', LastName) AS Name, Email " .
+			"FROM Instructor " .
+			"ORDER BY LastName ASC, FirstName ASC");
+		
+		$sth->execute();
+	}
+	catch (PDOException $e)
+	{
+		die('PDOException: ' . $e->getMessage());
+	}
+	
+	while ($row = $sth->fetch())
+	{
+		print '<option value="' . $row->Email . '">' . $row->Name . '</option>';
 	}
 	print '</select>';
-	
-	mysql_close($con);
 	
 	?>
 

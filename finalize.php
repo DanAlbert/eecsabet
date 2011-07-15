@@ -268,7 +268,7 @@ try
 		"WHERE ID=:id");
 	
 	$sth->bindParam(':id', $courseInstanceID);
-	mysql_query($query, $con);
+	$sth->execute();
 }
 catch (PDOException $e)
 {
@@ -332,7 +332,7 @@ function submitComments(
 			"CommentPrepActions=:prepActions, " .
 			"CommentChanges=:changes, " .
 			"CommentCLO=:clo, " .
-			"CommentRecs=:recs' " .
+			"CommentRecs=:recs " .
 			"WHERE ID=:id");
 		
 		$sth->bindParam(':prep', $prep);
@@ -346,6 +346,7 @@ function submitComments(
 	}
 	catch (PDOException $e)
 	{
+		die($e->getMessage());
 		return 2;
 	}
 	

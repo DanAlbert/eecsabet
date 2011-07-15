@@ -1,17 +1,14 @@
 <?php
 
+include_once '../../debug.php';
 require_once '../../db.php';
 
-$con = dbConnect();
-if (!con)
-{
-	die('Unable to connect to database: ' . mysql_error());
-}
+$dbh = dbConnect();
 
-$course = mysql_real_escape_string($_POST['course']);
-$instructor = mysql_real_escape_string($_POST['instructor']);
-$term = mysql_real_escape_string($_POST['term']);
-$year = mysql_real_escape_string($_POST['year']);
+$course = $_POST['course'];
+$instructor = $_POST['instructor'];
+$term = $_POST['term'];
+$year = $_POST['year'];
 
 if (($term == '00') OR ($term == '01'))
 {
@@ -21,44 +18,91 @@ if (($term == '00') OR ($term == '01'))
 $termID = $year . $term;
 
 // Insert CourseInstance
-$query = "CALL CreateCourseInstance('$course', '$instructor', '$termID');";
-$result = mysql_query($query, $con);
-$row = mysql_fetch_array($result);
-switch ($row[0])
+try
+{
+	$sth = $dbh->prepare(
+		"CALL CreateCourseInstance(:course, :instructor, :term, @result)");
+	
+	$sth->bindParam(':course', $course);
+	$sth->bindParam(':instructor', $instructor);
+	$sth->bindParam(':term', $termID);
+	
+	$sth->execute();
+}
+catch (PDOException $e)
+{
+	die('PDOException: ' . $e->getMessage());
+}
+
+$courseInstance = $dbh->query("SELECT @result AS result")->fetch()->result;
+switch ($courseInstance)
 {
 case -1:
 	print 'An error occured while creating the new course instance.';
-	mysql_close($con);
+	break;
+
+case -2:
+	print "A duplicate entry exists in the database.";
 	return;
+
+default:
+	break;
 }
 
-$query = "SELECT CONCAT(FirstName, ' ', LastName) AS Name FROM Instructor WHERE Email='$instructor';";
-$result = mysql_query($query, $con);
-$row = mysql_fetch_array($result);
-$instructorName = $row['Name'];
+try
+{
+	$sth = $dbh->prepare(
+		"SELECT CONCAT(FirstName, ' ', LastName) AS Name " .
+		"FROM Instructor " .
+		"WHERE Email=:email");
+	
+	$sth->bindParam(':email', $instructor);
+	$sth->execute();
+}
+catch (PDOException $e)
+{
+	die('PDOException: ' . $e->getMessage());
+}
 
-$query = "SELECT CONCAT(Dept, ' ', CourseNumber) AS Course FROM Course WHERE ID='$course';";
-$result = mysql_query($query, $con);
-$row = mysql_fetch_array($result);
-$courseName = $row['Course'];
+$instructorName = $sth->fetch()->Name;
 
-mysql_close($con);
+try
+{
+	$sth = $dbh->prepare(
+		"SELECT CONCAT(Dept, ' ', CourseNumber) AS Course " .
+		"FROM Course WHERE ID=:id");
+	
+	$sth->bindParam(':id', $course);
+	$sth->execute();
+}
+catch (PDOException $e)
+{
+	die('PDOException: ' . $e->getMessage());
+}
+
+$courseName = $sth->fetch()->Course;
 
 $pageURL = 'http://web.engr.oregonstate.edu/~albertd/eecsabet/index.php';
 
-$to = $instructor;
 $subject = "New course requires ABET information";
-$body = "You have a new course which you need to provide ABET accredidation information for. Please provide this information soon. To do so, visit the following page:";
 
-$headers  = 'MIME-Version: 1.0' . "\r\n";
-$headers .= 'Content-type: text/html; charset=iso-8859-1' . "\r\n";
-$headers .= 'From: eecsabet@eecs.oregonstate.edu' . "\r\n";
-$headers .= 'Reply-To: eecsabet@eecs.oregonstate.edu' . "\r\n";
-$headers .= 'X-Mailer: PHP/' . phpversion();
+$body = "You have a new course which you need to provide ABET " .
+	"accredidation information for. Please provide this information soon. To " .
+	"do so, visit the following page:";
 
-$message = '<html><head><title>Nagging</title><head><body>' . $instructorName . ',<br /><br />' . $body . '<br />';
-$message .= '<a href="' . $pageURL . '?courseInstanceID=' . $courseInstance . '">' . $courseName . '</a><br />';
-$message .= '<br />EECS ABET Mailer';
+$headers =
+	'MIME-Version: 1.0' . "\r\n" .
+	'Content-type: text/html; charset=iso-8859-1' . "\r\n" .
+	'From: eecsabet@eecs.oregonstate.edu' . "\r\n" .
+	'Reply-To: eecsabet@eecs.oregonstate.edu' . "\r\n" .
+	'X-Mailer: PHP/' . phpversion();
+
+$message = '<html><head><title>Nagging</title><head><body>' . $instructorName .
+	',<br /><br />' . $body . '<br /><a href="' . $pageURL . 
+	'?courseInstanceID=' . $courseInstance . '">' . $courseName . '</a><br />' .
+	'<br />EECS ABET Mailer';
+
+$to = $instructor;
 
 if (mail($to, $subject, $message, $headers) === true)
 {

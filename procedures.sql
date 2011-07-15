@@ -149,17 +149,23 @@ DELIMITER $$
 DROP PROCEDURE IF EXISTS CreateCourseInstance$$
 CREATE PROCEDURE CreateCourseInstance(	IN pCourseID INT,
 										IN pInstructor VARCHAR(255),
-										IN pTermID INT)
+										IN pTermID INT,
+										OUT pResult INT)
 BEGIN
+	DECLARE EXIT HANDLER FOR 1062
+	BEGIN
+		SET pResult = -2;
+	END;
+	
 	DECLARE EXIT HANDLER FOR SQLEXCEPTION, SQLWARNING
 	BEGIN
-		SELECT -1;
+		SET pResult = -1;
 	END;
 	
 	INSERT INTO CourseInstance (CourseID, Instructor, TermID)
 	VALUES (pCourseID, pInstructor, pTermID);
 	
-	SELECT 1;
+	SELECT LAST_INSERT_ID() INTO pResult;
 END$$
 DELIMITER ;
 
@@ -167,16 +173,9 @@ DELIMITER $$
 DROP PROCEDURE IF EXISTS AllowFinalize$$
 CREATE PROCEDURE AllowFinalize(IN pTermID INT)
 BEGIN
-	DECLARE EXIT HANDLER FOR SQLEXCEPTION, SQLWARNING
-	BEGIN
-		SELECT -1;
-	END;
-	
 	UPDATE TermState
 	SET State='Finalized'
 	WHERE TermID=pTermID;
-	
-	SELECT 1;
 END$$
 DELIMITER ;
 

@@ -1,23 +1,28 @@
 <?php
 
+include_once '../../debug.php';
 require_once '../../db.php';
 require_once 'latex.php';
 
-$con = dbConnect();
-if (!con)
+$dbh = dbConnect();
+
+try
 {
-	die('Unable to connect to database: ' . mysql_error());
+	$sth = $dbh->prepare(
+		"SELECT CourseID " .
+		"FROM CourseInstance, CurrentTerm " .
+		"WHERE CourseInstance.TermID=CurrentTerm.TermID");
+	
+	$sth->execute();
+}
+catch (PDOException $e)
+{
+	die('PDOException: ' . $e->getMessage());
 }
 
-$query = 	"SELECT CourseID " .
-			"FROM CourseInstance, CurrentTermStateInformation " .
-			"WHERE	CourseInstance.TermID=CurrentTermStateInformation.CurrentTerm;";
-$result = mysql_query($query, $con);
-mysql_close();
-
-while ($row = mysql_fetch_array($result))
+while ($row = $sth->fetch())
 {
-	generateABETSyllabus($row['CourseID']);
+	generateABETSyllabus($row->CourseID);
 }
 
 header('Location: ../index.php');

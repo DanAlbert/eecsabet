@@ -27,22 +27,22 @@ if (sizeof($toRemove) == 0)
 try
 {
 	$sth = $dbh->prepare("CALL RemoveCourseContent(:id)");
+	$sth->bindParam(':id', $id);
 }
 catch (PDOException $e)
 {
-	die('PDOException: ' . $e->getmessage());
+	die('PDOException: ' . $e->getMessage());
 }
 
 foreach ($toRemove as $id)
 {
 	try
 	{
-		$sth->bindParam(':id', $id);
 		$sth->execute();
 	}
 	catch (PDOException $e)
 	{
-		die('PDOException: ' . $e->getmessage());
+		die('PDOException: ' . $e->getMessage());
 	}
 }
 

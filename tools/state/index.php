@@ -8,31 +8,41 @@
 <a href="../index.php">Return to Adminstration Page</a>
 <?php
 
+include_once '../../debug.php';
 require_once '../../db.php';
 
-$con = dbConnect();
-if (!$con)
+$dbh = dbConnect();
+
+try
 {
-	die('Unable to connect to database: ' . mysql_error());
+	$sth = $dbh->prepare("SELECT * FROM CurrentTermStateInformation");
+	$sth->execute();
+}
+catch (PDOException $e)
+{
+	die('PDOException: ' . $e->getMessage());
 }
 
-$query = "SELECT * FROM CurrentTermStateInformation;";
-$result = mysql_query($query, $con);
-$row = mysql_fetch_array($result);
+$row = $sth->fetch();
 
-$termID = $row['CurrentTerm'];
-$state = $row['CurrentState'];
+$termID = $row->CurrentTerm;
+$state = $row->CurrentState;
 
-$query = "SELECT * FROM NaggingInformation GROUP BY Email;";
-$result = mysql_query($query, $con);
+try
+{
+	$sth = $dbh->prepare("SELECT * FROM NaggingInformation GROUP BY Email");
+	$sth->execute();
+}
+catch (PDOException $e)
+{
+	die('PDOException: ' . $e->getMessage());
+}
 
 $instructors = array();
-while ($row = mysql_fetch_array($result))
+while ($row = $sth->fetch())
 {
-	$instructors[] = array('Name' => $row['FirstName'] . ' ' . $row['LastName'], 'Email' => $row['Email'], 'State' => $row['State']);
+	$instructors[] = array('Name' => $row->FirstName . ' ' . $row->LastName, 'Email' => $row->Email, 'State' => $row->State);
 }
-
-mysql_close();
 
 $year = floor($termID / 100);
 $term = '';

@@ -37,13 +37,13 @@ try
 	
 	$sth->bindParam(':id', $courseInstanceID);
 	$sth->execute();
-
-	$row = $dbh->fetch();
 }
 catch (PDOException $e)
 {
 	die('PDOException: ' . $e->getMessage());
 }
+
+$row = $sth->fetch();
 
 $termID = $row->TermID;
 $year = floor($termID / 100);
@@ -84,12 +84,13 @@ $recs = $row->CommentRecs;
 
 try
 {
-	$sth->prepare(	"SELECT Dept, CourseNumber, IsCorequisite " .
-					"FROM	PrerequisiteInformation AS PI, " .
-							"CourseInstance AS CI" .
-					"WHERE	PI.CourseID=CI.CourseID AND " .
-							"CI.ID=:id " .
-					"ORDER BY IsCorequisite ASC");
+	$sth = $dbh->prepare(
+		"SELECT Dept, CourseNumber, IsCorequisite " .
+		"FROM	PrerequisiteInformation AS PI, " .
+				"CourseInstance AS CI " .
+		"WHERE	PI.CourseID=CI.CourseID AND " .
+				"CI.ID=:id " .
+		"ORDER BY IsCorequisite ASC");
 	$sth->bindParam(':id', $courseInstanceID);
 	$sth->execute();
 }
@@ -131,7 +132,7 @@ if ($state == 'Finalized')
 {
 	print '<p>ABET information for this course has already been finalized ' .
 		'and may no longer be revised. If you need to fix an error, please ' .
-		'contact <a href="mailto:foobar@gmail.com">foobar</a>.<p>';
+		'contact <a href="mailto:someone@gmail.com">this person</a>.<p>';
 }
 
 if (isset($_REQUEST['error']))

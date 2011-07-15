@@ -55,7 +55,7 @@ for ($i = 0; $i < $size; $i++)
 		switch (submitComments($courseInstanceID, $recs))
 		{
 		case 0:
-			onError($courseInstanceID, 13);
+			onError($courseInstanceID, 11);
 			break;
 			
 		case 1:
@@ -143,7 +143,7 @@ case 0:
 	break;
 	
 case 1:
-	onError($courseInstanceID, 13);
+	onError($courseInstanceID, 0);
 	break;
 	
 case 2:

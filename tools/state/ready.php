@@ -1,84 +1,86 @@
 <?php
 
+include_once '../../debug.php';
 require_once '../../db.php';
 
-$con = dbConnect();
-if (!$con)
-{
-	die('Unable to connect to database: ' . mysql_error());
-}
+$dbh = dbConnect();
 
 $termID = $_POST['TermID'];
 
-$query = "CALL AllowFinalize('$termID')";
-$result = mysql_query($query, $con);
-$row = mysql_fetch_array($result);
-switch ($row[0])
+try
 {
-case -1:
-	print 'An error occured while removing the course content.';
-	mysql_close($con);
-	return;
-	
-case 1:
-	break;
-	
-default:
-	print $query . ': ERROR (' . mysql_errno() . ')<br />';
-	break;
+	$sth = $dbh->prepare("CALL AllowFinalize(:id)");
+	$sth->bindParam(':id', $termID);
+	$sth->execute();
+}
+catch (PDOException $e)
+{
+	die('PDOException: ' . $e->getMessage());
 }
 
 $instructors = array();
 
-// Reconnect if connection is lost
-if (mysql_ping($con) === false)
+try
 {
-	$con = dbConnect();
-	if (!con)
-	{
-		die('Unable to connect to database: ' . mysql_error());
-	}
+	$sth = $dbh->prepare("CALL GetInstructorsByTerm(:id)");
+	$sth->bindParam(':id', $termID);
+	$sth->execute();
 }
-$query = "CALL GetInstructorsByTerm('$termID')";
-$result = mysql_query($query, $con);
-while ($row = mysql_fetch_array($result))
+catch (PDOException $e)
 {
-	$instructors[$row['Email']] = $row['Name'];
+	die('PDOException: ' . $e->getMessage());
+}
+
+while ($row = $sth->fetch())
+{
+	$instructors[$row->Email] = $row->Name;
 }
 
 $pageURL = 'http://web.engr.oregonstate.edu/~albertd/eecsabet/index.php';
 
 $subject = "Your courses are ready to be finalized";
-$body = "Your courses are ready to be finalized of their ABET accredidation information. Please provide this information soon. To do so, visit the following pages:";
+$body = "Your courses are ready to be finalized of their ABET " .
+	"accredidation information. Please provide this information soon. To do " .
+	"so, visit the following pages:";
 
-$headers  = 'MIME-Version: 1.0' . "\r\n";
-$headers .= 'Content-type: text/html; charset=iso-8859-1' . "\r\n";
-$headers .= 'From: eecsabet@eecs.orst.edu' . "\r\n";
-$headers .= 'Reply-To: eecsabet@eecs.orst.edu' . "\r\n";
-$headers .= 'X-Mailer: PHP/' . phpversion();
+$headers =
+	'MIME-Version: 1.0' . "\r\n" .
+	'Content-type: text/html; charset=iso-8859-1' . "\r\n" .
+	'From: eecsabet@eecs.orst.edu' . "\r\n" .
+	'Reply-To: eecsabet@eecs.orst.edu' . "\r\n" .
+	'X-Mailer: PHP/' . phpversion();
+
+try
+{
+	$sth = $dbh->prepare("CALL GetUnfinishedCourses(:email, :term)");
+	$sth->bindParam(':email', $to);
+	$sth->bindParam(':term', $termID);
+}
+catch (PDOException $e)
+{
+	die('PDOException: ' . $e->getMessage());
+}
 
 while (($instructor = current($instructors)) !== false)
 {
 	$to = key($instructors);
 	
-	// Reconnect if connection is lost
-	if (mysql_ping($con) === false)
+	try
 	{
-		$con = dbConnect();
-		if (!con)
-		{
-			die('Unable to connect to database: ' . mysql_error());
-		}
+		$sth->execute();
+	}
+	catch (PDOException $e)
+	{
+		die('PDOException: ' . $e->getMessage());
 	}
 	
-	$query = "CALL GetUnfinishedCourses('$to', '$termID')";
-	$result = mysql_query($query, $con);
+	$message = '<html><head><title>Ready to be Finalized</title><head><body>' .
+		$instructor . ',<br /><br />' . $body . '<br />';
 	
-	$message = '<html><head><title>Ready to be Finalized</title><head><body>' . $instructor . ',<br /><br />' . $body . '<br />';
-	
-	while ($row = mysql_fetch_array($result))
+	while ($row = $sth->fetch())
 	{
-		$message .= '<a href="' . $pageURL . '?courseInstanceID=' . $row['InstanceID'] . '">' . $row['Course'] . '</a><br />';
+		$message .= '<a href="' . $pageURL . '?courseInstanceID=' .
+			$row->InstanceID . '">' . $row->Course . '</a><br />';
 	}
 	
 	$message .= '<br />EECS ABET Mailer';
@@ -88,7 +90,6 @@ while (($instructor = current($instructors)) !== false)
 	next($instructors);
 }
 
-mysql_close($con);
-
 header('Location: index.php');
+
 ?>
