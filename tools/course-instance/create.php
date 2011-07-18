@@ -97,7 +97,7 @@ $headers =
 	'Reply-To: eecsabet@eecs.oregonstate.edu' . "\r\n" .
 	'X-Mailer: PHP/' . phpversion();
 
-$message = '<html><head><title>Nagging</title><head><body>' . $instructorName .
+$message = '<html><head><title>New Course</title><head><body>' . $instructorName .
 	',<br /><br />' . $body . '<br /><a href="' . $pageURL . 
 	'?courseInstanceID=' . $courseInstance . '">' . $courseName . '</a><br />' .
 	'<br />EECS ABET Mailer';

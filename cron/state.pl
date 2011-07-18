@@ -6,13 +6,15 @@ use POSIX;
 
 my $pageURL = 'http://web.engr.oregonstate.edu/~albertd/eecsabet/index.php';
 
-my $headers  = "Subject: Your courses are ready to be finalized\r\n";
+my $headers  = "Subject: New course requires ABET information\r\n";
 $headers .= "MIME-Version: 1.0\r\n";
 $headers .= "Content-type: text/html; charset=iso-8859-1\r\n";
 $headers .= 'From: eecsabet@eecs.oregonstate.edu' . "\r\n";
 $headers .= 'Reply-To: eecsabet@eecs.oregonstate.edu' . "\r\n";
 
-my $body = "Your courses are ready to be finalized of their ABET accredidation information. Please provide this information soon. To do so, visit the following pages:";
+my $body = "You have a new course which you need to provide ABET " .
+	"accredidation information for. Please provide this information soon. To " .
+	"do so, visit the following page:";
 
 my $beginSummer = POSIX::strftime("%V", 0, 0, 0, 20, 5, 2011);
 my $beginFall = POSIX::strftime("%V", 0, 0, 0, 26, 8, 2011);
@@ -80,13 +82,51 @@ my $currentTerm = $termInfoRow[0];
 my $state = $termInfoRow[1];
 
 # FOR TESTING
-$termID = '201203';
-$newState = 'Finalized';
-if ($currentTerm > $termID)
+#$termID = '201203';
+#$newState = 'Finalized';
+if ($termID > $currentTerm)
 {
 	# Advance to next term
 	# Send mail
 	print "Advancing term...\n";
+	
+	$query = "UPDATE CurrentTerm SET TermID='$termID'";
+	$sth = $con->prepare($query);
+	$sth->execute();
+	$sth->finish(); # Prevent warnings on exit
+	
+	$query = "CALL GetInstructorsByTerm('$termID')";
+	$sth = $con->prepare($query);
+	
+	$query = "CALL GetUnfinishedCourses(?, '$termID')";
+	my $h = $con->prepare_cached($query);
+	
+	$sth->execute();
+	while (my @row = $sth->fetchrow_array())
+	{
+		my $name = $row[0];
+		my $email = $row[1];
+		
+		open(MAIL, "|/usr/sbin/sendmail -t");
+	
+		print MAIL "To: $email\r\n";
+		print MAIL "$headers\r\n";
+		
+		print MAIL '<html><head><title></title><head><body>' . $name . 
+			',<br /><br />' . $body . '<br />';
+		
+		$h->execute($email);
+		while (my @courseRow = $h->fetchrow_array())
+		{
+			print MAIL '<a href="' . $pageURL . '?courseInstanceID=' .
+				$courseRow[1] . '">' . $courseRow[0] . '</a><br />';
+		}
+		print MAIL '<br />EECS ABET Mailer';
+		
+		close(MAIL);
+	}
+	$sth->finish(); # Prevent warnings on exit
+	$h->finish(); # Prevent warnings on exit
 }
 elsif (($state eq 'Approved') and ($newState eq 'Finalized'))
 {
@@ -123,11 +163,14 @@ elsif (($state eq 'Approved') and ($newState eq 'Finalized'))
 		print MAIL "To: $email\r\n";
 		print MAIL "$headers\r\n";
 		
-		print MAIL '<html><head><title>Ready to be Finalized</title><head><body>' . $name . ',<br /><br />' . $body . '<br />';
+		print MAIL '<html><head><title>New Course</title><head>' .
+			'<body>' . $name . ',<br /><br />' . $body . '<br />';
+		
 		$h->execute($email);
 		while (my @courseRow = $h->fetchrow_array())
 		{
-			print MAIL '<a href="' . $pageURL . '?courseInstanceID=' . $courseRow[1] . '">' . $courseRow[0] . '</a><br />';
+			print MAIL '<a href="' . $pageURL . '?courseInstanceID=' .
+				$courseRow[1] . '">' . $courseRow[0] . '</a><br />';
 		}
 		print MAIL '<br />EECS ABET Mailer';
 		
