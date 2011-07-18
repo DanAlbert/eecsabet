@@ -24,6 +24,11 @@ table, th, td
 	border: 1px solid black;
 }
 
+table.no-border, table.no-border th, table.no-border td
+{
+	border: 0px;
+}
+
 p
 {
 	margin: 10px 0px;
@@ -91,4 +96,9 @@ td input
 {
 	display: inline;
 	margin-top: 0px;
+}
+
+table+button
+{
+	margin-top: 5px;
 }

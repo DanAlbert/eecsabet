@@ -308,3 +308,46 @@ BEGIN
 	ORDER BY MasterCLO.CourseID, CLO.CLONumber;
 END$$
 DELIMITER ;
+
+DELIMITER $$
+DROP PROCEDURE IF EXISTS GetCourseInstanceCLOs$$
+CREATE PROCEDURE GetCourseInstanceMetrics(IN pInstanceID INT)
+BEGIN
+	SELECT	CLO.ID,
+			CLO.CLONumber,
+			CLO.Description,
+			GROUP_CONCAT(	DISTINCT Outcomes.Outcome
+							ORDER BY Outcomes.Outcome ASC
+							SEPARATOR ', ') AS Outcomes
+	FROM MasterCLO, CourseInstance, CLO, Outcomes, CLOOutcomes
+	WHERE	MasterCLO.CourseID=CourseInstance.CourseID AND
+			CourseInstance.ID=pInstanceID AND
+			MasterCLO.CLOID=CLO.ID AND
+			CLOOutcomes.CLOID=CLO.ID AND
+			CLOOutcomes.OutcomeID=Outcomes.ID;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+DROP PROCEDURE IF EXISTS GetRecentCLOMetrics$$
+CREATE PROCEDURE GetRecentCLOMetrics(	IN pCLOID INT,
+										IN pTermID INT)
+BEGIN
+	SELECT	CLOAssessment.Method,
+			CLOMetrics.Mean,
+			CLOMetrics.Median,
+			CLOMetrics.High,
+			CLOMetrics.Satisfactory
+	FROM CLOAssessment, CLOMetrics, CourseInstance
+	WHERE	CLOAssessment.CLOID=pCLOID AND
+			CLOAssessment.MetricID=CLOMetrics.ID AND
+			CLOAssessment.CourseInstanceID=CourseInstance.ID AND
+			CourseInstance.TermID=(	SELECT TermID
+									FROM CourseInstance
+									WHERE	CourseInstance.TermID<=pTermID AND
+											CourseInstance.State<>'Sent'
+									ORDER BY TermID DESC
+									LIMIT 1)
+	GROUP BY CLOMetrics.ID;
+END$$
+DELIMITER ;

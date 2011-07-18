@@ -4,6 +4,74 @@
 	<title>EECS ABET</title>
 	
 	<link rel="stylesheet" type="text/css" href="style.css" />
+	<script type="text/javascript"
+		src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js">
+	</script>
+	
+	<script type="text/javascript">
+	
+	function add(tableID)
+	{
+		var id = $("table#" + tableID + " tbody tr:last-child").attr('id');
+		var rowNum;
+		
+		if (typeof id === 'undefined')
+		{
+			rowNum = 0;
+		}
+		else
+		{
+			var parts = id.split('-');	
+			rowNum = parseInt(parts[1]) + 1;
+		}
+		
+		var rowID = tableID + '-' + rowNum;
+		
+		var delButton = '<button type="button" onclick="remove(' + tableID + 
+			', ' + rowNum + ')">Remove</button>';
+		
+		var state = $("table#" + tableID).attr('title');
+		
+		var methodName = 'method[' + tableID + '][' + rowNum + ']';
+		var meanName = 'mean[' + tableID + '][' + rowNum + ']';
+		var medianName = 'median[' + tableID + '][' + rowNum + ']';
+		var highName = 'high[' + tableID + '][' + rowNum + ']';
+		var satisfactoryName = 'satisfactory[' + tableID + '][' + rowNum + ']';
+		
+		var row =
+			'<tr id="' + rowID + '">' +
+			'<td><input type="text" name="' + methodName + '" /></td>';
+		
+		if (state == 'Ready')
+		{
+			row +=
+				'<td><input type="text" name="' + meanName + '" /></td>' +
+				'<td><input type="text" name="' + medianName + '" /></td>' +
+				'<td><input type="text" name="' + highName + '" /></td>';
+		}
+		else
+		{
+			row +=
+				'<td>Locked until end of term.</td>' +
+				'<td>Locked until end of term.</td>' +
+				'<td>Locked until end of term.</td>';
+		}
+		
+		row +=
+			'<td><input type="text" name="' + satisfactoryName + '" /></td>' +
+			'<td>' + delButton + '</td>' +
+			'</tr>';
+		
+		$("table#" + tableID + " tbody").append(row);
+	}
+	
+	function remove(tableID, rowNum)
+	{
+		var rowID = tableID + '-' + rowNum;
+		$("table#" + tableID + " tbody tr#" + rowID).remove();
+	}
+	
+	</script>
 </head>
 <body>
 
@@ -224,21 +292,9 @@ if ($state != 'Finalized')
 	print '?courseInstanceID=' . $courseInstanceID . '" method="POST">';
 }
 
-print '<table><thead><tr>';
-print '<th>Number</th>';
-print '<th>Title and Description</th>';
-print '<th>ABET Outcomes</th>';
-print '<th>How/Where Assessed*</th>';
-print '<th>Mean Score</th>';
-print '<th>Median Score</th>';
-print '<th>High Score</th>';
-print '<th>Satisfactory Score**</th>';
-print '</tr></thead><tbody>';
-
 try
 {
-	$sth = $dbh->prepare(	"SELECT * FROM CourseInstanceCLOInformation " .
-							"WHERE CourseInstanceID=:id");
+	$sth = $dbh->prepare("CALL GetCourseInstanceCLOs(:id)");
 	$sth->bindParam(':id', $courseInstanceID);
 	$sth->execute();
 }
@@ -247,137 +303,156 @@ catch (PDOException $e)
 	die('PDOException: ' . $e->getMessage());
 }
 
-$i = 0;
-while ($row = $sth->fetch())
+$clos = $sth->fetchAll();
+foreach ($clos as $clo)
 {
-	if (($i % 2) == 1)
+	print '<h3>' . $clo->CLONumber . '.' . ' ' . $clo->Description .
+			' (' . $clo->Outcomes . ')</h3>';
+	
+	if ($state == 'Sent')
 	{
-		print '<tr class="alt">';
+		print '<h4>Recent Data</h4>';
 	}
 	else
+	{
+		print '<h4>Current Data</h4>';
+	}
+	
+	print '<table class="no-border"><thead>';
+	print '<tr><th>Assessment Method</th>';
+	print '<th>Mean Score</th>';
+	print '<th>Median Score</th>';
+	print '<th>High Score</th>';
+	print '<th>Satisfactory Score</th>';
+	print '</thead><tbody>';
+	
+	try
+	{
+		$sth = $dbh->prepare("CALL GetRecentCLOMetrics(:cloid, :term)");
+		$sth->bindParam(':cloid', $clo->ID);
+		$sth->bindParam(':term', $termID);
+		$sth->execute();
+	}
+	catch (PDOException $e)
+	{
+		die('PDOException: ' . $e->getMessage());
+	}
+	
+	$metrics = $sth->fetchAll();
+	foreach ($metrics as $metric)
 	{
 		print '<tr>';
-	}
-	
-	print '<td>' . $row->CLONumber . '</td>';
-	print '<td>' . $row->Description . '</td>';
-	print '<td>' . $row->Outcomes . '</td>';
-	
-	if ($row->Assessed == '')
-	{
-		print '<td>N/A';
-	}
-	else
-	{
-		print '<td>' . $row->Assessed;
-	}
-	print '</td>';
-	
-	if ($row->MeanScore == '')
-	{
-		print '<td>N/A';
-	}
-	else
-	{
-		print '<td>' . $row->MeanScore . '%';
-	}
-	print '</td>';
-	
-	if ($row->MedianScore == '')
-	{
-		print '<td>N/A';
-	}
-	else
-	{
-		print '<td>' . $row->MedianScore . '%';
-	}
-	print '</td>';
-	
-	if ($row->HighScore == '')
-	{
-		print '<td>N/A';
-	}
-	else
-	{
-		print '<td>' . $row->HighScore . '%';
-	}
-	print '</td>';
-	
-	if ($row->SatisfactoryScore == '')
-	{
-		print '<td>N/A';
-	}
-	else
-	{
-		print '<td>' . $row->SatisfactoryScore . '%';
-	}
-	print '</td>';
-	
-	switch ($state)
-	{
-	case 'Sent':
-	case 'Viewed':
-	case 'Approved':
-		if (($i % 2) == 1)
+		if ($metric->Method == '')
 		{
-			print '<tr class="alt">';
+			print '<td>N/A</td>';
 		}
 		else
 		{
-			print '<tr>';
+			print '<td>' . $metric->Method . '</td>';
 		}
-		print '<td>&nbsp;</td>';
-		print '<td>Request change</td>';
-		print '<td>&nbsp;</td>';
 		
-		print '<td><input type="text" name="assessed[' . $row->CLOID .
-			']" /></td>';
-			
-		print '<td>Locked until end of term.</td>';
-		print '<td>Locked until end of term.</td>';
-		print '<td>Locked until end of term.</td>';
-		
-		print '<td><input type="text" name="satisfactory[' . $row->CLOID .
-			']" /></td>';
-			
-		print '</tr>';
-		break;
-	case 'Ready':
-		if (($i % 2) == 1)
+		if ($metric->Mean == '')
 		{
-			print '<tr class="alt">';
+			print '<td>N/A</td>';
 		}
 		else
 		{
-			print '<tr>';
+			print '<td>' . $metric->Mean . '%</td>';
 		}
-		print '<td>&nbsp;</td>';
-		print '<td>Request change</td>';
-		print '<td>&nbsp;</td>';
 		
-		print '<td><input type="text" name="assessed[' . $row->CLOID . ']" />' .
-			'</td>';
-			
-		print '<td><input type="text" name="mean[' . $row->CLOID . ']" /></td>';
+		if ($metric->Median == '')
+		{
+			print '<td>N/A</td>';
+		}
+		else
+		{
+			print '<td>' . $metric->Median . '%</td>';
+		}
 		
-		print '<td><input type="text" name="median[' . $row->CLOID . ']" />' .
-			'</td>';
-			
-		print '<td><input type="text" name="high[' . $row->CLOID . ']" /></td>';
+		if ($metric->High == '')
+		{
+			print '<td>N/A</td>';
+		}
+		else
+		{
+			print '<td>' . $metric->High . '%</td>';
+		}
 		
-		print '<td><input type="text" name="satisfactory[' . $row->CLOID .
-			']" /></td>';
+		if ($metric->Satisfactory == '')
+		{
+			print '<td>N/A</td>';
+		}
+		else
+		{
+			print '<td>' . $metric->Satisfactory . '%</td>';
+		}
 		
 		print '</tr>';
-		break;
-	case 'Finalized':
-		break;
 	}
 	
-	$i++;
+	print '</tbody></table><br />';
+	
+	if ($state != 'Finalized')
+	{
+		print '<table title="' . $state . '" id="' . $clo->ID . '"><thead>';
+		print '<tr><th>Assessment Method</th>';
+		print '<th>Mean Score</th>';
+		print '<th>Median Score</th>';
+		print '<th>High Score</th>';
+		print '<th>Satisfactory Score</th>';
+		print '<th>Remove</th>';
+		print '</thead><tbody>';
+		
+		switch ($state)
+		{
+		case 'Sent':
+		case 'Viewed':
+		case 'Approved':
+			print '<tr id="' . $clo->ID . '-0">';
+			print '<td><input type="text" name="assessed[' . $clo->ID .
+				']" /></td>';
+			
+			print '<td>Locked until end of term.</td>';
+			print '<td>Locked until end of term.</td>';
+			print '<td>Locked until end of term.</td>';
+			
+			print '<td><input type="text" name="satisfactory[' . $clo->ID .
+				']" /></td>';
+			break;
+		case 'Ready':
+			print '<tr>';
+			print '<td>&nbsp;</td>';
+			print '<td>Request change</td>';
+			print '<td>&nbsp;</td>';
+			
+			print '<td><input type="text" name="assessed[' . $clo->ID . ']" />' .
+				'</td>';
+				
+			print '<td><input type="text" name="mean[' . $clo->ID . ']" /></td>';
+			
+			print '<td><input type="text" name="median[' . $clo->ID . ']" />' .
+				'</td>';
+				
+			print '<td><input type="text" name="high[' . $clo->ID . ']" /></td>';
+			
+			print '<td><input type="text" name="satisfactory[' . $clo->ID .
+				']" /></td>';
+			break;
+		case 'Finalized':
+			break;
+		}
+		
+		print '<td><button type="button" onclick="remove(' . $clo->ID . ', 0)">Remove</button></td>';
+		
+		print '</tr>';
+		
+		print '</tbody></table>';
+		print '<button type="button" onclick="add(' . $clo->ID .
+			')">Add Assessment</button>';
+	}
 }
 	
-print '</tbody></table>';
+
 
 print '<h2>Comments</h2>';
 

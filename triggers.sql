@@ -154,8 +154,8 @@ BEGIN
 	END IF;
 	
 	-- CLO junk
-	INSERT INTO CourseInstanceCLO (CLOID, CourseInstanceID)
-		SELECT CLOID, NEW.ID FROM MasterCLO WHERE CourseID=NEW.CourseID;
+	--INSERT INTO CourseInstanceCLO (CLOID, CourseInstanceID)
+	--	SELECT CLOID, NEW.ID FROM MasterCLO WHERE CourseID=NEW.CourseID;
 END$$
 DELIMITER ;
 

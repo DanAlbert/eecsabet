@@ -31,6 +31,14 @@ WHERE MasterCLO.CourseID=CLO.CourseID AND MasterCLO.CLOID=CLO.ID AND CLOOutcomes
 GROUP BY MasterCLO.CourseID, CLOOutcomes.CLOID
 ORDER BY MasterCLO.CourseID, CLO.CLONumber;
 
+-- FUBAR
+-- Make it a PROCEDURE
+-- GetCourseInstanceMetrics()
+-- Return multiple result sets
+-- CLO
+-- -Assessment 1
+-- -Assessment 2
+-- -Assessment 3
 DROP VIEW IF EXISTS CourseInstanceCLOInformation;
 CREATE ALGORITHM=UNDEFINED VIEW CourseInstanceCLOInformation AS
 SELECT	CourseInstance.ID AS CourseInstanceID,
