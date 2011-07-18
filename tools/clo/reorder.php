@@ -1,33 +1,36 @@
 <?php
 
+include_once '../../debug.php';
 require_once '../../db.php';
 
-$con = dbConnect();
-if (!con)
-{
-	die('Unable to connect to database: ' . mysql_error());
-}
+$dbh = dbConnect();
 
-$courseID = mysql_real_escape_string($_REQUEST['courseID']);
-
-# This is broken after the Great Rebuild of July. Get out of here.
-header('Location: index.php?courseID=' . $courseID . '&error=4');
-return;
+$courseID = $_REQUEST['courseID'];
 
 $numbers = $_POST['number'];
 
-$query = "SELECT * FROM CourseCLOInformation WHERE CourseID='$courseID';";
-$result = mysql_query($query, $con);
+try
+{
+	$sth = $dbh->prepare(
+		"SELECT * FROM CourseCLOInformation WHERE CourseID=:course");
+	
+	$sth->bindParam(':course', $courseID);
+	$sth->execute();
+}
+catch (PDOException $e)
+{
+	die('PDOException: ' . $e->getMessage());
+}
 
 $oldValues = array();
-while ($row = mysql_fetch_array($result))
+while ($row = $sth->fetch())
 {
 	$values = array();
-	$values['CLONumber'] = $row['CLONumber'];
-	$values['Description'] = $row['Description'];
-	$values['Outcomes'] = $row['Outcomes'];
+	$values['CLONumber'] = $row->CLONumber;
+	$values['Description'] = $row->Description;
+	$values['Outcomes'] = $row->Outcomes;
 	
-	$oldValues[$row['CLOID']] = $values;
+	$oldValues[$row->CLOID] = $values;
 }
 
 $changed = array();
@@ -46,26 +49,26 @@ if (sizeof($changed) == 0)
 }
 
 // Begin
-mysql_query('START TRANSACTION;', $con);
+$dbh->beginTransaction();
 
-// Find the highest CLO ID
-$query = "SELECT MAX(CLO.ID) AS MaxCLOID FROM CLO;";
-$result = mysql_query($query, $con);
-if (mysql_num_rows($result) == 0)
-{
-	print mysql_error();
-	mysql_query('ROLLBACK;', $con);
-	mysql_close($con);
-	return;
-}
-
-$row = mysql_fetch_array($result);
-$maxCLOID = $row['MaxCLOID'];
-$newCLOID = $maxCLOID + 1;
 $newIDs = array();
 
 // Insert CLOs
-$query = "INSERT INTO CLO (ID, CourseID, CLONumber, Description) VALUES";
+try
+{
+	$sth = $dbh->prepare(
+		"INSERT INTO CLO (CourseID, CLONumber, Description) " .
+		"VALUES (:course, :number, :descr)");
+	
+	$sth->bindParam(':course', $courseID);
+	$sth->bindParam(':number', $cloNumber);
+	$sth->bindParam(':descr', $description);
+}
+catch (PDOException $e)
+{
+	die('PDOException: ' . $e->getMessage());
+}
+
 $outcomes = array();
 $first = true;
 foreach ($changed as $changedID)
@@ -73,105 +76,108 @@ foreach ($changed as $changedID)
 	$cloNumber = $numbers[$changedID];
 	$description = $oldValues[$changedID]['Description'];
 	
-	if (!$first)
+	try
 	{
-		$query .= ' ,';
+		$sth->execute();
 	}
+	catch (PDOException $e)
+	{
+		$dbh->rollback();
+		die('PDOException: ' . $e->getMessage());
+	}	
 	
-	$query .= " ('$newCLOID', '$courseID', '$cloNumber', '$description')";
+	$newCLOID = $dbh->lastInsertId();
 	$newIDs[] = $newCLOID;
 	$outcomes[$newCLOID] = $oldValues[$changedID]['Outcomes'];
-	$newCLOID++;
-	$first = false;
-}
-$query .= ";";
-
-if (mysql_query($query, $con) === false)
-{
-	print mysql_error();
-	mysql_query('ROLLBACK;', $con);
-	mysql_close($con);
-	return;
 }
 
 // Remove old MasterCLOs
-$query = "DELETE FROM MasterCLO WHERE CourseID='$courseID' AND (";
-$first = true;
+try
+{
+	$sth = $dbh->prepare(
+		"DELETE FROM MasterCLO WHERE CourseID=:course AND CLOID=:cloid");
+	
+	$sth->bindParam(':course', $courseID);
+	$sth->bindParam(':cloid', $changedID);
+}
+catch (PDOException $e)
+{
+	die('PDOException: ' . $e->getMessage());
+}
+
 foreach ($changed as $changedID)
 {
-	if (!$first)
+	try
 	{
-		$query .= " OR ";
+		$sth->execute();
 	}
-	$query .= "CLOID='$changedID'";
-	$first = false;
-}
-$query .= ');';
-
-if (mysql_query($query, $con) === false)
-{
-	print mysql_error();
-	mysql_query('ROLLBACK;', $con);
-	mysql_close($con);
-	return;
+	catch (PDOException $e)
+	{
+		$dbh->rollback();
+		die('PDOException: ' . $e->getMessage());
+	}
 }
 
 // Insert into MasterCLO
-$query = "INSERT INTO MasterCLO (CLOID, CourseID) VALUES";
-$first = true;
+try
+{
+	$sth = $dbh->prepare(
+		"INSERT INTO MasterCLO (CLOID, CourseID) VALUES (:cloid, :course)");
+	
+	$sth->bindParam(':cloid', $newID);
+	$sth->bindParam(':course', $courseID);
+}
+catch (PDOException $e)
+{
+	die('PDOException: ' . $e->getMessage());
+}
+
 foreach ($newIDs as $newID)
 {
-	if (!$first)
+	try
 	{
-		$query .= ' ,';
+		$sth->execute();
 	}
-	
-	$query .= " ('$newID', '$courseID')";
-	$first = false;
-}
-$query .= ";";
-
-if (mysql_query($query, $con) === false)
-{
-	print mysql_error();
-	mysql_query('ROLLBACK;', $con);
-	mysql_close($con);
-	return;
+	catch (PDOException $e)
+	{
+		$dbh->rollback();
+		die('PDOException: ' . $e->getMessage());
+	}
 }
 
 // Insert into CLOOutcomes
-$query = "INSERT INTO CLOOutcomes (CLOID, ABETOutcome) VALUES";
-$first = true;
+try
+{
+	$sth = $dbh->prepare("CALL AssociateOutcome(:cloid, :outcome, @result)");
+	$sth->bindParam(':cloid', $newID);
+	$sth->bindParam(':outcome', $char);
+}
+catch (PDOException $e)
+{
+	die('PDOException: ' . $e->getMessage());
+}
+
 foreach ($newIDs as $newID)
 {
 	foreach (str_split($outcomes[$newID]) as $char)
 	{
 		if (ctype_alpha($char))
 		{
-			if (!$first)
+			try
 			{
-				$query .= ', ';
+				$sth->execute();
 			}
-			
-			$query .= "('$newID', '$char')";
-			$first = false;
+			catch (PDOException $e)
+			{
+				$dbh->rollback();
+				die('PDOException: ' . $e->getMessage());
+			}
 		}
 	}
 }
-$query .= ";";
-
-if (mysql_query($query, $con) === false)
-{
-	print mysql_error();
-	mysql_query('ROLLBACK;', $con);
-	mysql_close($con);
-	return;
-}
 
 // Commit
-mysql_query('COMMIT;', $con);
-
-mysql_close($con);
+$dbh->commit();
 
 header('Location: index.php?courseID=' . $courseID);
 

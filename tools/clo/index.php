@@ -218,7 +218,7 @@ if (isset($_REQUEST['error']) AND ($_REQUEST['error'] == 1))
 <form action="create.php?courseID=<?php echo $courseID; ?>" method="POST">
 	<label for="description">Description</label>
 	<textarea id="description" name="description" cols="60" rows="10">
-	</textarea>
+</textarea>
 	
 	<label for="outcomes">ABET Outcomes</label>
 	<input id="outcomes" type="text" name="outcomes" />
