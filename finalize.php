@@ -1,12 +1,15 @@
 <?php
 
 include_once 'debug.php';
+require_once 'assessment.php';
+require_once 'comments.php';
 require_once 'db.php';
+require_once 'util.php';
 
 $dbh = dbConnect();
 
 $courseInstanceID = $_REQUEST['courseInstanceID'];
-$assessed = $_POST['assessed'];
+$method = $_POST['method'];
 $mean = $_POST['mean'];
 $median = $_POST['median'];
 $high = $_POST['high'];
@@ -15,12 +18,12 @@ $satisfactory = $_POST['satisfactory'];
 $prep = $_POST['prep'];
 $prepActions = $_POST['prepActions'];
 $changes = $_POST['changes'];
-$clo = $_POST['clo'];
+$cloComments = $_POST['clo'];
 $recs = $_POST['recs'];
 
-if (sizeof($assessed) == 0)
+if (sizeof($method) == 0)
 {
-	onError($courseInstanceID, 3);
+	onError($courseInstanceID, 1);
 	return;
 }
 
@@ -30,224 +33,145 @@ try
 }
 catch (PDOException $e)
 {
-	die('PDOException: ' . $e->getmessage());
+	die('PDOException: ' . $e->getMessage());
 }
 
-$size = sizeof($assessed);
-$current = null;
-for ($i = 0; $i < $size; $i++)
+# Turn the nightmare of POST data into something usable
+$clos = array();
+for ($i = 0; $i < sizeof($method); $i++)
 {
-	$current = current($assessed);
+	$cloID = key($method);
 	
-	$cleanedAssessed = $assessed[key($assessed)];
-	
-	$meanDecimalPos = strpos($mean[key($assessed)], '.');
-	$medianDecimalPos = strpos($median[key($assessed)], '.');
-	$highDecimalPos = strpos($high[key($assessed)], '.');
-	$satisfactoryDecimalPos = strpos($satisfactory[key($assessed)], '.');
-	
-	$cleanedMean = '';
-	if ($meanDecimalPos !== false)
+	if (sizeof($method[$cloID]) == 0)
 	{
-		$intPart = substr($mean[key($assessed)], 0, $meanDecimalPos);
-		$cleanedMean = preg_replace('/\D/', '', $intPart);
-	}
-	else
-	{
-		$cleanedMean = preg_replace('/\D/', '', $mean[key($assessed)]);
-	}
-	
-	$cleanedMedian = '';
-	if ($medianDecimalPos !== false)
-	{
-		$intPart = substr($median[key($assessed)], 0, $medianDecimalPos);
-		$cleanedMedian = preg_replace('/\D/', '', $intPart);
-	}
-	else
-	{
-		$cleanedMedian = preg_replace('/\D/', '', $median[key($assessed)]);
-	}
-	
-	$cleanedHigh = '';
-	if ($highDecimalPos !== false)
-	{
-		$intPart = substr($high[key($assessed)], 0, $highDecimalPos);
-		$cleanedHigh = preg_replace('/\D/', '', $intPart);
-	}
-	else
-	{
-		$cleanedHigh = preg_replace('/\D/', '', $high[key($assessed)]);
-	}
-	
-	$cleanedSatisfactory = '';
-	if ($satisfactoryDecimalPos !== false)
-	{
-		$intPart =
-			substr($satisfactory[key($assessed)], 0, $satisfactoryDecimalPos);
-		
-		$cleanedSatisfactory = preg_replace('/\D/', '', $intPart);
-	}
-	else
-	{
-		$cleanedSatisfactory =
-			preg_replace('/\D/', '', $satisfactory[key($assessed)]);
-	}
-	
-	if (($cleanedAssessed == '') OR ($cleanedAssessed == null))
-	{
-		$dbh->rollback();
-		
-		switch (submitComments(	$dbh,
-								$courseInstanceID,
-								$prep, $prepActions,
-								$changes,
-								$clo,
-								$recs))
-		{
-		case 0:
-			onError($courseInstanceID, 11);
-			break;
-			
-		case 1:
-			onError($courseInstanceID, 6);
-			break;
-			
-		case 2:
-			onError($courseInstanceID, 5);
-			break;
-		}
+		onError($courseInstanceID, 1);
 		return;
 	}
+	
+	$set = new AssessmentSet($cloID);
+	
+	for ($j = 0; $j < sizeof($method[$cloID]); $j++)
+	{
+		$cleanedMethod = current($method[$cloID]);
+		$cleanedMean = cleanIntString(current($mean[$cloID]));
+		$cleanedMedian = cleanIntString(current($median[$cloID]));
+		$cleanedHigh = cleanIntString(current($high[$cloID]));
+		$cleanedSatisfactory = cleanIntString(current($satisfactory[$cloID]));
+		
+		$set->add(new Assessment(
+			$cleanedMethod,
+			$cleanedSatisfactory,
+			$cleanedMean,
+			$cleanedMedian,
+			$cleanedHigh));
+		
+		next($method[$cloID]);
+		next($mean[$cloID]);
+		next($median[$cloID]);
+		next($high[$cloID]);
+		next($satisfactory[$cloID]);
+	}
+	
+	$clos[] = $set;
+	
+	next($method);
+}
 
-	if ($cleanedMean == '')
-	{
-		$dbh->rollback();
-		
-		switch (submitComments(	$dbh,
-								$courseInstanceID,
-								$prep,
-								$prepActions,
-								$changes,
-								$clo,
-								$recs))
-		{
-		case 0:
-			onError($courseInstanceID, 11);
-			break;
-			
-		case 1:
-			onError($courseInstanceID, 7);
-			break;
-			
-		case 2:
-			onError($courseInstanceID, 5);
-			break;
-		}
-		return;
-	}
-
-	if ($cleanedMedian == '')
-	{
-		$dbh->rollback();
-		
-		switch (submitComments(	$dbh,
-								$courseInstanceID,
-								$prep,
-								$prepActions,
-								$changes,
-								$clo,
-								$recs))
-		{
-		case 0:
-			onError($courseInstanceID, 11);
-			break;
-			
-		case 1:
-			onError($courseInstanceID, 8);
-			break;
-			
-		case 2:
-			onError($courseInstanceID, 5);
-			break;
-		}
-		return;
-	}
-
-	if ($cleanedHigh == '')
-	{
-		$dbh->rollback();
-		
-		switch (submitComments(	$dbh,
-								$courseInstanceID,
-								$prep,
-								$prepActions,
-								$changes,
-								$clo,
-								$recs))
-		{
-		case 0:
-			onError($courseInstanceID, 11);
-			break;
-			
-		case 1:
-			onError($courseInstanceID, 9);
-			break;
-			
-		case 2:
-			onError($courseInstanceID, 5);
-			break;
-		}
-		return;
-	}
-
-	if ($cleanedSatisfactory == '')
-	{
-		$dbh->rollback();
-		
-		switch (submitComments(	$dbh,
-								$courseInstanceID,
-								$prep,
-								$prepActions,
-								$changes,
-								$clo,
-								$recs))
-		{
-		case 0:
-			onError($courseInstanceID, 11);
-			break;
-			
-		case 1:
-			onError($courseInstanceID, 10);
-			break;
-			
-		case 2:
-			onError($courseInstanceID, 5);
-			break;
-		}
-		return;
-	}
+# Remove existing metrics
+try
+{
+	$sth = $dbh->prepare(
+		"DELETE FROM CLOAssessment WHERE CourseInstanceID=:id");
 	
-	$cloID = key($assessed);
-	
+	$sth->bindParam(':id', $courseInstanceID);
+	$sth->execute();
+}
+catch (PDOException $e)
+{
+	$dbh->rollback();
+	onError($courseInstanceID, 2);
+	return;
+}
+
+foreach ($clos as $clo)
+{
+	foreach ($clo->getSet() as $a)
+	{
+		if (($a->getMethod() == '') or ($a->getMethod() == null))
+		{
+			$dbh->rollback();
+			return onError($courseInstanceID, 1);
+		}
+
+		if (($a->getSatisfactory() == '') or ($a->getSatisfactory() == null))
+		{
+			$dbh->rollback();
+			return onError($courseInstanceID, 1);
+		}
+		
+		# Submit new metrics
+		try
+		{
+			$sth = $dbh->prepare(
+				"INSERT INTO CLOAssessment " .
+				"	(CourseInstanceID, " .
+					"CLOID, " .
+					"Method, " .
+					"Mean, " .
+					"Median, " .
+					"High, " .
+					"Satisfactory) VALUES " .
+				"	(:id, " .
+					":cloid, " .
+					":method, " .
+					":mean, " .
+					":median, " .
+					":high, " .
+					":satisfactory)");
+			
+			$sth->bindParam(':method', $a->getMethod());
+			$sth->bindParam(':mean', $a->getMean());
+			$sth->bindParam(':median', $a->getMedian());
+			$sth->bindParam(':high', $a->getHigh());
+			$sth->bindParam(':satisfactory', $a->getSatisfactory());
+			$sth->bindParam(':cloid', $clo->getCLOID());
+			$sth->bindParam(':id', $courseInstanceID);
+			
+			$sth->execute();
+		}
+		catch (PDOException $e)
+		{
+			$dbh->rollback();
+			onError($courseInstanceID, 2);
+			return;
+		}
+	}
+}
+
+# Don't lost assessment changes if the comments fail
+$dbh->commit();
+
+# Try to submit comments
+$result = submitFinalComments(
+	$dbh,
+	$courseInstanceID,
+	$prep,
+	$prepActions,
+	$changes,
+	$cloComments,
+	$recs);
+
+# If successful, update course state
+if ($result == 0)
+{
 	try
 	{
 		$sth = $dbh->prepare(
-			"UPDATE CourseInstanceCLO " .
-			"SET Assessed=:assessed, " .
-				"MeanScore=:mean, " .
-				"MedianScore=:median, " .
-				"HighScore=:high, " .
-				"SatisfactoryScore=:satisfactory " .
-			"WHERE CLOID=:cloid AND CourseInstanceID=:id");
+			"UPDATE CourseInstance " .
+			"SET State='Finalized' " .
+			"WHERE ID=:id");
 		
-		$sth->bindParam(':assessed', $cleanedAssessed);
-		$sth->bindParam(':mean', $cleanedMean);
-		$sth->bindParam(':median', $cleanedMedian);
-		$sth->bindParam(':high', $cleanedHigh);
-		$sth->bindParam(':satisfactory', $cleanedSatisfactory);
-		$sth->bindParam(':cloid', $cloID);
-		$sth->bindparam(':id', $courseInstanceID);
-		
+		$sth->bindParam(':id', $courseInstanceID);
 		$sth->execute();
 	}
 	catch (PDOException $e)
@@ -256,107 +180,16 @@ for ($i = 0; $i < $size; $i++)
 		onError($courseInstanceID, 5);
 		return;
 	}
-	
-	next($assessed);
 }
 
-try
-{
-	$sth = $dbh->prepare(
-		"UPDATE CourseInstance " .
-		"SET State='Finalized' " .
-		"WHERE ID=:id");
-	
-	$sth->bindParam(':id', $courseInstanceID);
-	$sth->execute();
-}
-catch (PDOException $e)
-{
-	$dbh->rollback();
-	onError($courseInstanceID, 5);
-	return;
-}
-
-switch (submitComments(	$dbh,
-						$courseInstanceID,
-						$prep,
-						$prepActions,
-						$changes,
-						$clo,
-						$recs))
-{
-case 0:
-	$dbh->commit();
-	onError($courseInstanceID, 12);
-	break;
-	
-case 1:
-	$dbh->rollback();
-	onError($courseInstanceID, 14);
-	break;
-	
-case 2:
-	$dbh->rollback();
-	onError($courseInstanceID, 5);
-	break;
-	
-default:
-	$dbh->rollback();
-	onError($courseInstanceID, 15);
-	break;
-}
-
-function submitComments(
-	$dbh,
-	$courseInstanceID,
-	$prep,
-	$prepActions,
-	$changes,
-	$clo,
-	$recs)
-{
-	if (($prep == '') OR
-		($prepActions == '') OR
-		($changes == '') OR
-		($clo == '') OR
-		($recs == ''))
-	{
-		return 1;
-	}
-	
-	try
-	{
-		$sth = $dbh->prepare(
-			"UPDATE CourseInstance SET " .
-			"CommentPrep=:prep, " .
-			"CommentPrepActions=:prepActions, " .
-			"CommentChanges=:changes, " .
-			"CommentCLO=:clo, " .
-			"CommentRecs=:recs " .
-			"WHERE ID=:id");
-		
-		$sth->bindParam(':prep', $prep);
-		$sth->bindParam(':prepActions', $prepActions);
-		$sth->bindParam(':changes', $changes);
-		$sth->bindParam(':clo', $clo);
-		$sth->bindParam(':recs', $recs);
-		$sth->bindParam(':id', $courseInstanceID);
-		
-		$sth->execute();
-	}
-	catch (PDOException $e)
-	{
-		die($e->getMessage());
-		return 2;
-	}
-	
-	return 0;
-}
+# Return result
+onError($courseInstanceID, $result);
 
 function onError($courseInstanceID, $errno)
 {
 	header('Location: index.php?courseInstanceID=' . $courseInstanceID .
 		'&error=' . $errno);
+	return;
 }
 
 ?>

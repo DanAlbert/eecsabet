@@ -311,7 +311,7 @@ DELIMITER ;
 
 DELIMITER $$
 DROP PROCEDURE IF EXISTS GetCourseInstanceCLOs$$
-CREATE PROCEDURE GetCourseInstanceMetrics(IN pInstanceID INT)
+CREATE PROCEDURE GetCourseInstanceCLOs(IN pInstanceID INT)
 BEGIN
 	SELECT	CLO.ID,
 			CLO.CLONumber,
@@ -324,7 +324,8 @@ BEGIN
 			CourseInstance.ID=pInstanceID AND
 			MasterCLO.CLOID=CLO.ID AND
 			CLOOutcomes.CLOID=CLO.ID AND
-			CLOOutcomes.OutcomeID=Outcomes.ID;
+			CLOOutcomes.OutcomeID=Outcomes.ID
+	GROUP BY CLO.ID;
 END$$
 DELIMITER ;
 
@@ -334,20 +335,18 @@ CREATE PROCEDURE GetRecentCLOMetrics(	IN pCLOID INT,
 										IN pTermID INT)
 BEGIN
 	SELECT	CLOAssessment.Method,
-			CLOMetrics.Mean,
-			CLOMetrics.Median,
-			CLOMetrics.High,
-			CLOMetrics.Satisfactory
-	FROM CLOAssessment, CLOMetrics, CourseInstance
+			CLOAssessment.Mean,
+			CLOAssessment.Median,
+			CLOAssessment.High,
+			CLOAssessment.Satisfactory
+	FROM CLOAssessment, CourseInstance
 	WHERE	CLOAssessment.CLOID=pCLOID AND
-			CLOAssessment.MetricID=CLOMetrics.ID AND
 			CLOAssessment.CourseInstanceID=CourseInstance.ID AND
 			CourseInstance.TermID=(	SELECT TermID
 									FROM CourseInstance
 									WHERE	CourseInstance.TermID<=pTermID AND
 											CourseInstance.State<>'Sent'
 									ORDER BY TermID DESC
-									LIMIT 1)
-	GROUP BY CLOMetrics.ID;
+									LIMIT 1);
 END$$
 DELIMITER ;

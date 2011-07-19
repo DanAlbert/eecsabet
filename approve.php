@@ -1,18 +1,21 @@
 <?php
 
 include_once 'debug.php';
+require_once 'assessment.php';
+require_once 'comments.php';
 require_once 'db.php';
+require_once 'util.php';
 
 $dbh = dbConnect();
 
 $courseInstanceID = $_REQUEST['courseInstanceID'];
-$assessed = $_POST['assessed'];
+$method = $_POST['method'];
 $satisfactory = $_POST['satisfactory'];
 $recs = $_POST['recs'];
 
-if (sizeof($assessed) == 0)
+if (sizeof($method) == 0)
 {
-	onError($courseInstanceID, 3);
+	onError($courseInstanceID, 1);
 	return;
 }
 
@@ -25,86 +28,109 @@ catch (PDOException $e)
 	die('PDOException: ' . $e->getMessage());
 }
 
-$size = sizeof($assessed);
-$current = null;
-for ($i = 0; $i < $size; $i++)
+# Turn the nightmare of POST data into something usable
+$clos = array();
+for ($i = 0; $i < sizeof($method); $i++)
 {
-	$current = current($assessed);
+	$cloID = key($method);
 	
-	$cleanedAssessed = $assessed[key($assessed)];
-	$satisfactoryDecimalPos = strpos($satisfactory[key($assessed)], '.');
-	
-	$cleanedSatisfactory = '';
-	if ($satisfactoryDecimalPos !== false)
+	if (sizeof($method[$cloID]) == 0)
 	{
-		$intPart =
-			substr($satisfactory[key($assessed)], 0, $satisfactoryDecimalPos);
-		
-		$cleanedSatisfactory = preg_replace('/\D/', '', $intPart);
-	}
-	else
-	{
-		$cleanedSatisfactory =
-			preg_replace('/\D/', '', $satisfactory[key($assessed)]);
-	}
-	
-	if (($cleanedAssessed == '') OR ($cleanedAssessed == null))
-	{
-		$dbh->rollback();
-		
-		switch (submitComments($courseInstanceID, $recs))
-		{
-		case 0:
-			onError($courseInstanceID, 11);
-			break;
-			
-		case 1:
-			onError($courseInstanceID, 3);
-			break;
-			
-		case 2:
-			onError($courseInstanceID, 5);
-			break;
-		}
+		onError($courseInstanceID, 1);
 		return;
 	}
+	
+	$set = new AssessmentSet($cloID);
+	
+	for ($j = 0; $j < sizeof($method[$cloID]); $j++)
+	{
+		$cleanedMethod = current($method[$cloID]);
+		$cleanedSatisfactory = cleanIntString(current($satisfactory[$cloID]));
+		
+		$set->add(new Assessment($cleanedMethod, $cleanedSatisfactory));
+		
+		next($method[$cloID]);
+		next($satisfactory[$cloID]);
+	}
+	
+	$clos[] = $set;
+	
+	next($method);
+}
 
-	if ($cleanedSatisfactory == '')
+# Remove existing metrics
+try
+{
+	$sth = $dbh->prepare(
+		"DELETE FROM CLOAssessment WHERE CourseInstanceID=:id");
+	
+	$sth->bindParam(':id', $courseInstanceID);
+	$sth->execute();
+}
+catch (PDOException $e)
+{
+	$dbh->rollback();
+	onError($courseInstanceID, 2);
+	return;
+}
+
+foreach ($clos as $clo)
+{
+	foreach ($clo->getSet() as $a)
 	{
-		$dbh->rollback();
-		
-		switch (submitComments($courseInstanceID, $recs))
+		if (($a->getMethod() == '') or ($a->getMethod() == null))
 		{
-		case 0:
-			onError($courseInstanceID, 11);
-			break;
-			
-		case 1:
-			onError($courseInstanceID, 4);
-			break;
-			
-		case 2:
-			onError($courseInstanceID, 5);
-			break;
+			$dbh->rollback();
+			return onError($courseInstanceID, 1);
 		}
-		return;
+
+		if (($a->getSatisfactory() == '') or ($a->getSatisfactory() == null))
+		{
+			$dbh->rollback();
+			return onError($courseInstanceID, 1);
+		}
+		
+		# Submit new metrics
+		try
+		{
+			$sth = $dbh->prepare(
+				"INSERT INTO CLOAssessment " .
+				"(CourseInstanceID, CLOID, Method, Satisfactory) " .
+				"VALUES (:id, :cloid, :method, :satisfactory)");
+			
+			$sth->bindParam(':method', $a->getMethod());
+			$sth->bindParam(':satisfactory', $a->getSatisfactory());
+			$sth->bindParam(':cloid', $clo->getCLOID());
+			$sth->bindParam(':id', $courseInstanceID);
+			
+			$sth->execute();
+		}
+		catch (PDOException $e)
+		{
+			$dbh->rollback();
+			onError($courseInstanceID, 2);
+			return;
+		}
 	}
-	
-	$cloID = key($assessed);
-	
+}
+
+# Don't lost assessment changes if the comments fail
+$dbh->commit();
+
+# Try to submit comments
+$result = submitInitialComments($dbh, $courseInstanceID, $recs);
+
+# If successful, update course state
+if ($result == 0)
+{
 	try
 	{
 		$sth = $dbh->prepare(
-			"UPDATE CourseInstanceCLO " .
-			"SET Assessed=:assessed, " .
-			"SatisfactoryScore=:satisfactory " .
-			"WHERE CLOID=:cloid AND CourseInstanceID=:id");
+			"UPDATE CourseInstance " .
+			"SET State='Approved' " .
+			"WHERE ID=:id");
 		
-		$sth->bindParam(':assessed', $cleanedAssessed);
-		$sth->bindParam(':satisfactory', $cleanedSatisfactory);
-		$sth->bindParam(':cloid', $cloID);
 		$sth->bindParam(':id', $courseInstanceID);
-		
 		$sth->execute();
 	}
 	catch (PDOException $e)
@@ -113,78 +139,15 @@ for ($i = 0; $i < $size; $i++)
 		onError($courseInstanceID, 5);
 		return;
 	}
-	
-	next($assessed);
 }
 
-try
-{
-	$sth = $dbh->prepare(
-		"UPDATE CourseInstance " .
-		"SET State='Approved' " .
-		"WHERE ID=:id");
-	
-	$sth->bindParam(':id', $courseInstanceID);
-	$sth->execute();
-}
-catch (PDOException $e)
-{
-	$dbh->rollback();
-	onError($courseInstanceID, 5);
-	return;
-}
-
-$dbh->commit();
-
-switch (submitComments($courseInstanceID, $recs))
-{
-case 0:
-	onError($courseInstanceID, 12);
-	break;
-	
-case 1:
-	onError($courseInstanceID, 0);
-	break;
-	
-case 2:
-	onError($courseInstanceID, 5);
-	break;
-}
-
-return;
-
-function submitComments($courseInstanceID, $recs)
-{
-	$dbh = dbConnect();
-	
-	if ($recs == '')
-	{
-		return 1;
-	}
-	
-	try
-	{
-		$sth = $dbh->prepare(
-			"UPDATE CourseInstance " .
-			"SET CommentRecs=:recs " .
-			"WHERE ID=:id");
-		
-		$sth->bindParam(':recs', $recs);
-		$sth->bindParam(':id', $courseInstanceID);
-		
-		$sth->execute();
-	}
-	catch (PDOException $e)
-	{
-		return 2;
-	}
-
-	return 0;
-}
+# Return result
+onError($courseInstanceID, $result);
 
 function onError($courseInstanceID, $errno)
 {
-	header('Location: index.php?courseInstanceID=' . $courseInstanceID . '&error=' . $errno);
+	header('Location: index.php?courseInstanceID=' . $courseInstanceID .
+		'&error=' . $errno);
 	return;
 }
 

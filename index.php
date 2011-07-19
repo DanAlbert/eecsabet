@@ -147,7 +147,7 @@ $state = $row->State;
 $prep = $row->CommentPrep;
 $prepActions = $row->CommentPrepActions;
 $changes = $row->CommentChanges;
-$clo = $row->CommentCLO;
+$cloComment = $row->CommentCLO;
 $recs = $row->CommentRecs;
 
 try
@@ -208,60 +208,14 @@ if (isset($_REQUEST['error']))
 	switch ($_REQUEST['error'])
 	{
 	case 0:
-		print 'CLOs updated successfully.';
+		print 'Information submitted successfully.';
 		break;
 		
-	case 3:
-		print 'You must provide how/where the outcome is assessed before ' .
-			'approving.';
-		break;
-		
-	case 4:
-		print 'You must provide the satisfactory score before approving.';
+	case 1:
+		print 'You must provide all fields before proceeding.';
 		break;
 	
-	case 5:
-		print 'An error occurred while submitting changes to the server.';
-		break;
-		
-	case 6:
-		print 'You must provide how/where the outcome is assessed before ' .
-			'finalizing.';
-		break;
-		
-	case 7:
-		print 'You must provide the mean score before finalizing.';
-		break;
-	
-	case 8:
-		print 'You must provide the median score before finalizing.';
-		break;
-		
-	case 9:
-		print 'You must provide the high score before finalizing.';
-		break;
-		
-	case 10:
-		print 'You must provide the satisfactory score before finalizing.';
-		break;
-		
-	case 11:
-		print 'Comments updated successfully.';
-		break;
-		
-	case 12:
-		print 'CLOs and comments updated successfully.';
-		break;
-	
-	case 13:
-		print 'You must fill out all of the comment fields before approving.';
-		break;
-	
-	case 14:
-		print 'You must fill out all of the comment fields before finalizing.';
-		break;
-	
-	case 15:
+	case 2:
 		print 'Unknown error.';
 		break;
 	}
@@ -406,43 +360,72 @@ foreach ($clos as $clo)
 		switch ($state)
 		{
 		case 'Sent':
-		case 'Viewed':
-		case 'Approved':
 			print '<tr id="' . $clo->ID . '-0">';
-			print '<td><input type="text" name="assessed[' . $clo->ID .
-				']" /></td>';
+			print '<td><input type="text" name="method[' . $clo->ID .
+				'][0]" /></td>';
 			
 			print '<td>Locked until end of term.</td>';
 			print '<td>Locked until end of term.</td>';
 			print '<td>Locked until end of term.</td>';
 			
 			print '<td><input type="text" name="satisfactory[' . $clo->ID .
-				']" /></td>';
+				'][0]" /></td>';
+			
+			print '<td><button type="button" onclick="remove(' . $clo->ID .
+				', 0)">Remove</button></td>';
+			
 			break;
+			
+		case 'Approved':
+			$i = 0;
+			foreach ($metrics as $metric)
+			{
+				print '<tr id="' . $clo->ID . '-' . $i . '">';
+				print '<td><input type="text" name="method[' . $clo->ID .
+					'][' . $i . ']" value="' . $metric->Method . '" /></td>';
+				
+				print '<td>Locked until end of term.</td>';
+				print '<td>Locked until end of term.</td>';
+				print '<td>Locked until end of term.</td>';
+				
+				print '<td><input type="text" name="satisfactory[' . $clo->ID .
+					'][' . $i . ']" value="' . $metric->Satisfactory .
+					'" /></td>';
+				
+				print '<td><button type="button" onclick="remove(' . $clo->ID .
+					', ' . $i . ')">Remove</button></td>';
+				
+				$i++;
+			}
+			break;
+			
 		case 'Ready':
-			print '<tr>';
-			print '<td>&nbsp;</td>';
-			print '<td>Request change</td>';
-			print '<td>&nbsp;</td>';
-			
-			print '<td><input type="text" name="assessed[' . $clo->ID . ']" />' .
-				'</td>';
+			$i = 0;
+			foreach ($metrics as $metric)
+			{
+				print '<tr id="' . $clo->ID . '-' . $i . '">';
 				
-			print '<td><input type="text" name="mean[' . $clo->ID . ']" /></td>';
-			
-			print '<td><input type="text" name="median[' . $clo->ID . ']" />' .
-				'</td>';
+				print '<td><input type="text" name="method[' . $clo->ID .
+					'][' . $i . ']" value="' . $metric->Method . '" /></td>';
+					
+				print '<td><input type="text" name="mean[' . $clo->ID .
+					'][' . $i . ']" value="' . $metric->Mean . '" /></td>';
 				
-			print '<td><input type="text" name="high[' . $clo->ID . ']" /></td>';
-			
-			print '<td><input type="text" name="satisfactory[' . $clo->ID .
-				']" /></td>';
-			break;
-		case 'Finalized':
+				print '<td><input type="text" name="median[' . $clo->ID .
+					'][' . $i . ']" value="' . $metric->Median . '" /></td>';
+					
+				print '<td><input type="text" name="high[' . $clo->ID .
+					'][' . $i . ']" value="' . $metric->High . '" /></td>';
+				
+				print '<td><input type="text" name="satisfactory[' . $clo->ID .
+					'][' . $i . ']" value="' . $metric->Satisfactory .
+					'" /></td>';
+				
+				print '<td><button type="button" onclick="remove(' . $clo->ID .
+					', ' . $i . ')">Remove</button></td>';
+			}
 			break;
 		}
-		
-		print '<td><button type="button" onclick="remove(' . $clo->ID . ', 0)">Remove</button></td>';
 		
 		print '</tr>';
 		
@@ -515,7 +498,7 @@ if (($state == 'Ready') OR ($state == 'Finalized'))
 	}
 	print '>';
 
-	print $clo;
+	print $cloComment;
 
 	print '</textarea>';
 }

@@ -8,6 +8,12 @@ index.php:
 approve.php:
 	Used to submit changes to CLO assessment areas and satisfactory scores.
 
+assessments.php:
+	Contains Assessment and AssessmentSet classes to help with approve.php and finalize.php.
+
+comments.php:
+	Contains functions for submitting course comments.
+
 db.php:
 	Contains MySQL database utilities.
 
@@ -31,6 +37,9 @@ tables.sql:
 
 triggers.sql:
 	MySQL trigger design. Not to be included in production web directory.
+
+util.php:
+	Contains functions for cleaning inputs.
 
 views.sql:
 	MySQL view design. Not to be included in production web directory.
