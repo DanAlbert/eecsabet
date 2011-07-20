@@ -98,4 +98,49 @@ else
 
 print '</table>';
 
+try
+{
+	$sth = $dbh->prepare("CALL GetProgramOutcomeCLOs(:dept, :outcome)");
+	
+	$sth->bindParam(':dept', $dept);
+	$sth->bindParam(':outcome', $outcome);
+	$sth->execute();
+}
+catch (PDOException $e)
+{
+	die('PDOException: ' . $e->getMessage());
+}
+
+print '<h2>CLOs where this Outcome is Assessed</h2>';
+print '<table><thead><tr>';
+print '<th>Course</th>';
+print '<th>CLO Number</th>';
+print '<th>Description</th>';
+print '<th>Outcomes</th>';
+print '</tr></thead><tbody>';
+
+$i = 0;
+while ($row = $sth->fetch())
+{
+	if ($i % 2)
+	{
+		print '<tr class="alt">';
+	}
+	else
+	{
+		print '<tr>';
+	}
+	
+	print '<td>' . $row->Course . '</td>';
+	print '<td>' . $row->CLONumber . '</td>';
+	print '<td>' . $row->Description . '</td>';
+	print '<td>' . $row->Outcomes . '</td>';
+	
+	print '</tr>';
+	
+	$i++;
+}
+
+print '</tbody></table>'
+
 ?>

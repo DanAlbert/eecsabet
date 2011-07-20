@@ -430,3 +430,26 @@ BEGIN
 				Outcomes.Outcome=LOWER(pOutcome));
 END$$
 DELIMITER ;
+
+DELIMITER $$
+DROP PROCEDURE IF EXISTS GetProgramOutcomeCLOs$$
+CREATE PROCEDURE GetProgramOutcomeCLOs(	IN pDept VARCHAR(4),
+										IN pOutcome CHAR(1))
+BEGIN
+	SELECT	CONCAT(Course.Dept, ' ', Course.CourseNumber) AS Course,
+			CLO.CLONumber,
+			CLO.Description,
+			GROUP_CONCAT(	DISTINCT Outcomes.Outcome
+							ORDER BY Outcomes.Outcome ASC
+							SEPARATOR ', ') AS Outcomes
+	FROM MasterCLO, Course, CLO, Outcomes, CLOOutcomes
+	WHERE	MasterCLO.CourseID=Course.ID AND
+			MasterCLO.CLOID=CLO.ID AND
+			CLO.ID=CLOOutcomes.CLOID AND
+			CLOOutcomes.OutcomeID=Outcomes.ID AND
+			Outcomes.Dept=pDept AND
+			(	Outcomes.Outcome=UPPER(pOutcome) OR
+				Outcomes.Outcome=LOWER(pOutcome))
+	GROUP BY CLO.ID;
+END $$
+DELIMITER ;

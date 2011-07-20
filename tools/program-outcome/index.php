@@ -84,7 +84,8 @@
 </head>
 
 <body>
-<a href="../index.php">Return to Adminstration Page</a>
+<a href="../index.php">Return to Adminstration Page</a><br />
+<br />
 <form action="javascript:void()" >
 	<select id="dept" name="dept">
 	<?php
