@@ -119,6 +119,15 @@ tools/prerequisite/create.php:
 tools/prerequisite/remove.php:
 	Removes a prerequisite course.
 
+tools/program-outcome/index.php:
+	Displays program outcome information.
+
+tools/program-outcome/get-info.php:
+	Prints a table of program outcome information. To be loaded with AJAX.
+
+tools/program-outcome/get-info.php:
+	Prints a list of outcome options for a given department. To be loaded with AJAX.
+
 tools/state/index.php:
 	Displays the current term, the term's state, any instructors that have yet to complete their forms,and allows the administrator to make courses ready for finalization.
 

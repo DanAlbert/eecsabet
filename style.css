@@ -49,9 +49,9 @@ input[type="submit"], button
 	padding: 5px;
 }
 
-tr.alt td
+tr.alt > td
 {
-	background-color: #cccccc;
+	background-color: #dddddd;
 }
 
 textarea
@@ -98,7 +98,7 @@ td input
 	margin-top: 0px;
 }
 
-table+button
+table
 {
-	margin-top: 5px;
+	margin: 8px 0px;
 }

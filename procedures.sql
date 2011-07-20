@@ -350,3 +350,83 @@ BEGIN
 									LIMIT 1);
 END$$
 DELIMITER ;
+
+DELIMITER $$
+DROP PROCEDURE IF EXISTS GetProgramOutcomeInfo$$
+CREATE PROCEDURE GetProgramOutcomeInfo(	IN pDept VARCHAR(4),
+										IN pOutcome CHAR(1))
+BEGIN
+	SELECT	T3.SignificantCourses,
+			T3.Courses,
+			T4.Methods
+	FROM
+	(SELECT T1.Dept, T1.Outcome, T1.SignificantCourses, T2.Courses FROM
+		(SELECT	Outcomes.Dept,
+				Outcomes.Outcome,
+				GROUP_CONCAT(
+					CONCAT (Course.Dept, ' ', Course.CourseNumber)
+					SEPARATOR ', ') AS SignificantCourses
+		FROM Course, MasterCLO, CLOOutcomes, Outcomes
+		WHERE	Course.ID=MasterCLO.CourseID AND
+				MasterCLO.CLOID=CLOOutcomes.CLOID AND
+				Outcomes.ID=CLOOutcomes.OutcomeID AND
+				Outcomes.Outcome=pOutcome AND
+				Outcomes.Dept=UPPER(pDept)) AS T1
+	RIGHT JOIN
+		(SELECT	Outcomes.Dept,
+				UPPER(Outcomes.Outcome) AS Outcome,
+				GROUP_CONCAT(
+					CONCAT (Course.Dept, ' ', Course.CourseNumber)
+					SEPARATOR ', ') AS Courses
+		FROM Course, MasterCLO, CLOOutcomes, Outcomes
+		WHERE	Course.ID=MasterCLO.CourseID AND
+				MasterCLO.CLOID=CLOOutcomes.CLOID AND
+				Outcomes.ID=CLOOutcomes.OutcomeID AND
+				Outcomes.Dept=pDept AND
+				(	Outcomes.Outcome=UPPER(pOutcome)
+					OR Outcomes.Outcome=LOWER(pOutcome))
+				GROUP BY UPPER(Outcomes.Outcome)) AS T2
+	ON T1.Dept=T2.Dept AND T1.Outcome=T2.Outcome) AS T3
+	LEFT JOIN
+		(SELECT	Outcomes.Dept,
+				UPPER(Outcomes.Outcome) AS Outcome,
+				CourseInstance.TermID,
+				GROUP_CONCAT(
+					DISTINCT CLOAssessment.Method
+					ORDER BY CLOAssessment.Method
+					SEPARATOR ', ') AS Methods
+		FROM CourseInstance, CLOAssessment, CLO, CLOOutcomes, Outcomes
+		WHERE	CLOAssessment.CourseInstanceID=CourseInstance.ID AND
+				CLOAssessment.CLOID=CLO.ID AND
+				CLO.ID=CLOOutcomes.CLOID AND
+				CLOOutcomes.OutcomeID=Outcomes.ID AND
+				Outcomes.Dept=pDept AND
+				(	Outcomes.Outcome=UPPER(pOutcome)
+					OR Outcomes.Outcome=LOWER(pOutcome)) AND
+				CourseInstance.TermID=(
+					SELECT TermID
+					FROM CourseInstance
+					WHERE	CourseInstance.TermID<(
+						SELECT TermID
+						FROM CurrentTerm
+						LIMIT 1)
+					ORDER BY TermID DESC
+					LIMIT 1)
+		GROUP BY UPPER(Outcomes.Outcome), CourseInstance.TermID) AS T4
+	ON T3.Dept=T4.Dept AND T3.Outcome=T4.Outcome;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+DROP PROCEDURE IF EXISTS GetPerformanceCriteria$$
+CREATE PROCEDURE GetPerformanceCriteria(	IN pDept VARCHAR(4),
+											IN pOutcome CHAR(1))
+BEGIN
+	SELECT	PerformanceCriteria.Criterion
+	FROM	PerformanceCriteria, Outcomes
+	WHERE 	PerformanceCriteria.OutcomeID=Outcomes.ID AND
+			Outcomes.Dept=pDept AND
+			(	Outcomes.Outcome=UPPER(pOutcome) OR
+				Outcomes.Outcome=LOWER(pOutcome));
+END$$
+DELIMITER ;
