@@ -111,7 +111,8 @@ catch (PDOException $e)
 	die('PDOException: ' . $e->getMessage());
 }
 
-$row = $sth->fetch();
+$rows = $sth->fetchAll();
+$row = $rows[0];
 
 $termID = $row->TermID;
 $year = floor($termID / 100);
@@ -134,7 +135,9 @@ case 3:
 	break;
 }
 
-print '<h1>Editing ABET Details for ' . $row->Dept . ' ' . $row->CourseNumber .
+$dept = $row->Dept;
+
+print '<h1>Editing ABET Details for ' . $dept . ' ' . $row->CourseNumber .
 	' (' . $row->CreditHours . ')</h1>';
 
 print '<h2>' . $row->Title . '</h2>';
@@ -258,10 +261,13 @@ catch (PDOException $e)
 }
 
 $clos = $sth->fetchAll();
+dbFlush($sth); // Flush stats result set
 foreach ($clos as $clo)
 {
 	print '<h3>' . $clo->CLONumber . '.' . ' ' . $clo->Description .
 			' (' . $clo->Outcomes . ')</h3>';
+	
+	printImprovementMessages($dbh, $dept, $clo->Outcomes);
 	
 	if ($state == 'Sent')
 	{
@@ -535,6 +541,69 @@ case 'Ready':
 if ($state != 'Finalized')
 {
 	print '</form>';
+}
+
+function printImprovementMessages($dbh, $dept, $outcomeString)
+{
+	$outcomes = array();
+	$items = str_split($outcomeString);
+	foreach ($items as $item)
+	{
+		if (ctype_alpha($item))
+		{
+			$outcomes[] = $item;
+		}
+	}
+	
+	try
+	{
+		$sth = $dbh->prepare(
+			"SELECT	Description,
+					Improvement
+			FROM	Outcomes
+			WHERE 	Improvement<>'' AND
+					Outcomes.Dept=:dept AND
+					(	Outcomes.Outcome=UPPER(:outcome) OR
+						Outcomes.Outcome=LOWER(:outcome))");
+		
+		$sth->bindParam(':dept', $dept);
+		$sth->bindParam(':outcome', $outcome);
+	}
+	catch (PDOException $e)
+	{
+		die('PDOException: ' . $e->getMessage());
+	}
+	
+	$first = true;
+	foreach ($outcomes as $outcome)
+	{
+		try
+		{
+			$sth->execute();
+		}
+		catch (PDOException $e)
+		{
+			die('PDOException: ' . $e->getMessage());
+		}
+		
+		$rows = $sth->fetchAll();
+		if (sizeof($rows) > 0)
+		{
+			if ($first)
+			{
+				print '<h4>Curriculum Improvement Messages</h4>';
+				print '<hr />';
+			}
+			foreach ($rows as $row)
+			{
+				print "<h5>{$outcome}. {$row->Description}</h5>";
+				print $row->Improvement;
+				print '<hr />';
+			}
+			
+			$first = false;
+		}
+	}
 }
 
 ?>

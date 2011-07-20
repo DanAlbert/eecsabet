@@ -54,6 +54,7 @@ CREATE TABLE Outcomes
 	Outcome CHAR(1) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
 	Dept VARCHAR(4) NOT NULL,
 	Description VARCHAR(255) NOT NULL,
+	Improvement TEXT NOT NULL DEFAULT '',
 	PRIMARY KEY (ID),
 	UNIQUE (Outcome, Dept)
 ) ENGINE=InnoDB;

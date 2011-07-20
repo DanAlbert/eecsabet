@@ -453,3 +453,18 @@ BEGIN
 	GROUP BY CLO.ID;
 END $$
 DELIMITER ;
+
+DELIMITER $$
+DROP PROCEDURE IF EXISTS GetOutcomeImprovement$$
+CREATE PROCEDURE GetOutcomeImprovement(	IN pDept VARCHAR(4),
+										IN pOutcome CHAR(1))
+BEGIN
+	SELECT	Description,
+			Improvement
+	FROM	Outcomes
+	WHERE 	Improvement<>'' AND
+			Outcomes.Dept=pDept AND
+			(	Outcomes.Outcome=UPPER(pOutcome) OR
+				Outcomes.Outcome=LOWER(pOutcome));
+END$$
+DELIMITER ;

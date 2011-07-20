@@ -102,3 +102,8 @@ table
 {
 	margin: 8px 0px;
 }
+
+ul, ol
+{
+	list-style-position: inside;
+}

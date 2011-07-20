@@ -95,6 +95,18 @@ tools/course-instance/index.php:
 tools/course-instance/create.php:
 	Creates a new CourseInstance.
 
+tools/improvement/index.php:
+	Form for editing curriculum improvement messages.
+
+tools/improvement/get-improvement.php:
+	Gets improvement text for a given outcome.
+	
+tools/improvement/get-outcomes.php:
+	Gets a list of outcomes by department.
+
+tools/improvement/submit.php:
+	Submits information from tools/improvement/index.php.
+
 tools/instructor/index.php:
 	Form for creating a new instructor.
 

@@ -29,4 +29,12 @@ function dbConnect()
 	return $dbh;
 }
 
+function dbFlush($sth)
+{
+	while ($set = $sth->nextRowset())
+	{
+		$set->fetchAll();
+	}
+}
+
 ?>
