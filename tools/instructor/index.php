@@ -19,6 +19,8 @@
 	<input id="email" type="text" name="email" />
 	<input type="submit" value="Create New Instructor" />
 </form>
+<a href="../course-instance/index.php">Next (Course Instance)</a> or
+	<a href="../course/index.php">Create a Course</a>
 
 </body>
 </html>

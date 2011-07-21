@@ -93,6 +93,11 @@ if (isset($_REQUEST['error']) AND ($_REQUEST['error'] == 2))
 	
 	<input type="submit" value="Create New Learning Resource" />
 </form>
+<br />
+<a href="../course-content/index.php?courseID=<?php echo $courseID; ?>">
+	Previous (Course Content)</a> |
+<a href="../terms-offered/index.php?courseID=<?php echo $courseID; ?>">
+	Next (Terms Offered)</a>
 
 </body>
 </html>

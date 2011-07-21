@@ -226,6 +226,8 @@ if (isset($_REQUEST['error']) AND ($_REQUEST['error'] == 1))
 	
 	<input type="submit" value="Create New CLO" />
 </form>
-
+<br />
+<a href="../course-content/index.php?courseID=<?php echo $courseID; ?>">
+	Next (Course Content)</a>
 </body>
 </html>

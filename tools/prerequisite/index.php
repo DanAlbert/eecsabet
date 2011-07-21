@@ -165,6 +165,11 @@ if (isset($_REQUEST['error']) AND ($_REQUEST['error'] == 1))
 	</table>
 	<input type="submit" value="Submit" />
 </form>
+<br />
+<a href="../terms-offered/index.php?courseID=<?php echo $courseID; ?>">
+	Previous (Terms Offered)</a> |
+<a href="../course-instance/index.php">Next (Course Instance)</a> or
+	<a href="../instructor/index.php">Create an Instructor</a>
 
 </body>
 </html>

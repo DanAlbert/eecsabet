@@ -77,6 +77,11 @@ print '<h1>Editing Terms that ' . $row->Dept . ' ' . $row->CourseNumber .
 	
 	<input type="submit" value="Submit" />
 </form>
+<br />
+<a href="../learning-resources/index.php?courseID=<?php echo $courseID; ?>">
+	Previous (Learning Resources)</a> |
+<a href="../prerequisite/index.php?courseID=<?php echo $courseID; ?>">
+	Next (Prerequisites)</a>
 
 </body>
 </html>

@@ -2,18 +2,25 @@
 <html>
 <head>
 	<title>Administrative Tools</title>
-	<link rel="stylesheet" type="text/css" />
+	<link rel="stylesheet" type="text/css" href="../style.css" />
 </head>
 <body>
 
-<a href="readme.html">Help</a><br />
-<br />
-<a href="course/index.php">Create a New Course</a> |
+<a href="readme.html">Help</a>
+
+<!--<a href="state/index.php">Manage Course States</a>  |
+<a href="syllabus/dump.php">Generate All LaTeX Syllabi</a>-->
+
+<h5>Curriculum and Program Outcome Information</h5>
+<a href="program-outcome/index.php">Program Outcome Information</a>  |
+<a href="improvement/index.php">Curriculum Improvement Messages</a>
+
+<h5>Course Offerings</h5>
 <a href="instructor/index.php">Add an Instructor</a> |
-<a href="state/index.php">Manage Course States</a>  |
-<a href="program-outcome/index.php">View Program Outcome Information</a>  |
-<a href="improvement/index.php">Manage Curriculum Improvement Messages</a>  |
-<a href="syllabus/dump.php">Dump LaTeX Syllabi for All Current Courses</a>
+<a href="course-instance/index.php">Create a Course Offering</a>
+
+<h5>Course Creation</h5>
+<a href="course/index.php">Create a Course</a>
 
 <?php
 
@@ -25,17 +32,21 @@ $dbh = dbConnect();
 
 if (isset($_REQUEST['courseID']))
 {
-	print	' | <a href="clo/index.php?courseID=' . $_REQUEST['courseID'] .
-			'">Modify Course Learning Outcomes</a> | ' .
-			'<a href="course-content/index.php?courseID=' .
-			$_REQUEST['courseID'] . '">Modify Course Content</a> | ' .
-			'<a href="learning-resources/index.php?courseID=' .
-			$_REQUEST['courseID'] .
-			'">Modify Course Learning Resources</a> | ' .
-			'<a href="prerequisite/index.php?courseID=' .
-			$_REQUEST['courseID'] . '">Modify Course Prerequisites</a> | ' .
-			'<a href="terms-offered/index.php?courseID=' .
-			$_REQUEST['courseID'] . '">Change Terms this Course is Offered</a>';
+	print
+		' | <a href="clo/index.php?courseID=' . $_REQUEST['courseID'] .
+		'">Course Learning Outcomes</a> | ' .
+		'<a href="course-content/index.php?courseID=' .	$_REQUEST['courseID'] .
+		'">Course Content</a> | ' .
+		'<a href="learning-resources/index.php?courseID=' .
+		$_REQUEST['courseID'] . '">Learning Resources</a> | ' .
+		'<a href="prerequisite/index.php?courseID=' . $_REQUEST['courseID'] .
+		'">Prerequisites</a> | ' .
+		'<a href="terms-offered/index.php?courseID=' . $_REQUEST['courseID'] .
+		'">Terms Offered</a>';
+}
+else
+{
+	print '<h5>More tools will appear once you have selected a course</h5>';
 }
 
 try
@@ -59,9 +70,6 @@ if (sizeof($rows) == 0)
 }
 else
 {
-	print ' | <a href="course-instance/index.php">Create a New Course ' .
-		'Instance</a>';
-	
 	print '<h1>Courses</h1>';
 	$first = true;
 	foreach ($rows as $row)
