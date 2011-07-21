@@ -15,7 +15,7 @@ $dbh = dbConnect();
 $courseID = $_REQUEST['courseID'];
 
 print '<a href="../index.php?courseID=' . $courseID . '">Return to ' .
-	'Adminstration Page</a>';
+	'Adminstration Page</a> | <a href="readme.html">Help</a>';
 
 try
 {
@@ -163,7 +163,7 @@ if (isset($_REQUEST['error']) AND ($_REQUEST['error'] == 1))
 			?>
 		</tbody>
 	</table>
-	<input type="submit" />
+	<input type="submit" value="Submit" />
 </form>
 
 </body>

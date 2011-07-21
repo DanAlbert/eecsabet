@@ -15,7 +15,7 @@ $dbh = dbConnect();
 $courseID = $_REQUEST['courseID'];
 
 print '<a href="../index.php?courseID=' . $courseID . '">' .
-	'Return to Adminstration Page</a>';
+	'Return to Adminstration Page</a> | <a href="readme.html">Help</a>';
 
 try
 {

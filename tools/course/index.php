@@ -6,7 +6,8 @@
 </head>
 <body>
 
-<a href="../index.php">Return to Adminstration Page</a>
+<a href="../index.php">Return to Adminstration Page</a> |
+<a href="readme.html">Help</a>
 <form action="create.php" method="POST">
 	<label for="dept">Department (Ex. ECE, CS, ENGR, etc.)</label>
 	<input id="dept" type="text" name="dept" />

@@ -6,7 +6,8 @@
 </head>
 <body>
 
-<a href="../index.php">Return to Adminstration Page</a>
+<a href="../index.php">Return to Adminstration Page</a> |
+<a href="readme.html">Help</a>
 <form action="create.php" method="POST">
 	<label for="firstName">First Name</label>
 	<input id="firstName" type="text" name="firstName" />

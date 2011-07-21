@@ -75,7 +75,8 @@
 </head>
 <body>
 
-<a href="tools/index.php">Administrative Tools</a>
+<a href="tools/index.php">Administrative Tools</a> |
+<a href="readme.html">Help</a>
 <br />
 <?php
 

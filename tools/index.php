@@ -6,10 +6,13 @@
 </head>
 <body>
 
+<a href="readme.html">Help</a><br />
+<br />
 <a href="course/index.php">Create a New Course</a> |
 <a href="instructor/index.php">Add an Instructor</a> |
 <a href="state/index.php">Manage Course States</a>  |
 <a href="program-outcome/index.php">View Program Outcome Information</a>  |
+<a href="improvement/index.php">Manage Curriculum Improvement Messages</a>  |
 <a href="syllabus/dump.php">Dump LaTeX Syllabi for All Current Courses</a>
 
 <?php

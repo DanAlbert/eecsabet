@@ -66,7 +66,8 @@ $dbh = dbConnect();
 
 $courseID = $_REQUEST['courseID'];
 
-print '<a href="../index.php?courseID=' . $courseID . '">Return to Adminstration Page</a>';
+print '<a href="../index.php?courseID=' . $courseID .
+	'">Return to Adminstration Page</a> | <a href="readme.html">Help</a>';
 
 try
 {
@@ -139,7 +140,7 @@ if (isset($_REQUEST['error']) AND ($_REQUEST['error'] == 4))
 			?>
 		</tbody>
 	</table>
-	<input type="submit" />
+	<input type="submit" value="Submit" />
 </form>
 
 <h2>Reorder CLOs</h2>
@@ -196,7 +197,7 @@ if (isset($_REQUEST['error']) AND ($_REQUEST['error'] == 3))
 			?>
 		</tbody>
 	</table>
-	<input type="submit" />
+	<input type="submit" value="Submit" />
 </form>
 
 <h2>Add a New CLO</h2>

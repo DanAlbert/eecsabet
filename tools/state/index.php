@@ -5,7 +5,8 @@
 	<link rel="stylesheet" type="text/css" href="../../style.css" />
 </head>
 <body>
-<a href="../index.php">Return to Adminstration Page</a>
+<a href="../index.php">Return to Adminstration Page</a> |
+<a href="readme.html">Help</a>
 <?php
 
 include_once '../../debug.php';

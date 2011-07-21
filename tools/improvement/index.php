@@ -80,7 +80,8 @@
 	</script>
 </head>
 <body>
-<a href="../index.php">Return to Adminstration Page</a><br />
+<a href="../index.php">Return to Adminstration Page</a> |
+<a href="readme.html">Help</a><br />
 <br />
 <form action="submit.php" method="POST">
 	<select id="dept" name="dept">

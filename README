@@ -44,6 +44,9 @@ util.php:
 views.sql:
 	MySQL view design. Not to be included in production web directory.
 
+*/readme.html:
+	Readme file with information on how to use the tools in the directory.
+
 cron/:
 	Contains cron scripts for periodical emails and state changes.
 
