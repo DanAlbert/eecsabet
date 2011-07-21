@@ -363,8 +363,9 @@ BEGIN
 	(SELECT T1.Dept, T1.Outcome, T1.SignificantCourses, T2.Courses FROM
 		(SELECT	Outcomes.Dept,
 				Outcomes.Outcome,
-				GROUP_CONCAT(
+				GROUP_CONCAT(DISTINCT
 					CONCAT (Course.Dept, ' ', Course.CourseNumber)
+					ORDER BY Course.Dept, Course.CourseNumber
 					SEPARATOR ', ') AS SignificantCourses
 		FROM Course, MasterCLO, CLOOutcomes, Outcomes
 		WHERE	Course.ID=MasterCLO.CourseID AND
@@ -375,8 +376,9 @@ BEGIN
 	RIGHT JOIN
 		(SELECT	Outcomes.Dept,
 				UPPER(Outcomes.Outcome) AS Outcome,
-				GROUP_CONCAT(
+				GROUP_CONCAT(DISTINCT
 					CONCAT (Course.Dept, ' ', Course.CourseNumber)
+					ORDER BY Course.Dept, Course.CourseNumber
 					SEPARATOR ', ') AS Courses
 		FROM Course, MasterCLO, CLOOutcomes, Outcomes
 		WHERE	Course.ID=MasterCLO.CourseID AND
@@ -439,17 +441,25 @@ BEGIN
 	SELECT	CONCAT(Course.Dept, ' ', Course.CourseNumber) AS Course,
 			CLO.CLONumber,
 			CLO.Description,
-			GROUP_CONCAT(	DISTINCT Outcomes.Outcome
-							ORDER BY Outcomes.Outcome ASC
+			GROUP_CONCAT(	DISTINCT O2.Outcome
+							ORDER BY O2.Outcome ASC
 							SEPARATOR ', ') AS Outcomes
-	FROM MasterCLO, Course, CLO, Outcomes, CLOOutcomes
+	FROM	MasterCLO,
+			Course,
+			CLO,
+			Outcomes AS O1,
+			Outcomes AS O2,
+			CLOOutcomes AS C1,
+			CLOOutcomes AS C2
 	WHERE	MasterCLO.CourseID=Course.ID AND
 			MasterCLO.CLOID=CLO.ID AND
-			CLO.ID=CLOOutcomes.CLOID AND
-			CLOOutcomes.OutcomeID=Outcomes.ID AND
-			Outcomes.Dept=pDept AND
-			(	Outcomes.Outcome=UPPER(pOutcome) OR
-				Outcomes.Outcome=LOWER(pOutcome))
+			CLO.ID=C1.CLOID AND
+			C1.OutcomeID=O1.ID AND
+			O1.Dept=pDept AND
+			(	O1.Outcome=UPPER(pOutcome) OR
+				O1.Outcome=LOWER(pOutcome)) AND
+			CLO.ID=C2.CLOID AND
+			C2.OutcomeID=O2.ID
 	GROUP BY CLO.ID;
 END $$
 DELIMITER ;

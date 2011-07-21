@@ -30,7 +30,7 @@ function generateABETSyllabus($courseID)
 	$num = $row->CourseNumber;
 	$title = $row->Title;
 	$descrip = $row->Description;
-	$structure = $row->Structure;
+	$structure = str_replace("%", "\\%", $row->Structure);
 	$credits = $row->CreditHours;
 	$terms = array(
 		'Summer' => $row->Summer,
@@ -240,7 +240,7 @@ function generateABETSyllabus($courseID)
 	
 	while ($row = $sth->fetch())
 	{
-		$resources[] = str_replace("_", "\\_", $row->Res);;
+		$resources[] = str_replace("_", "\\_", $row->Res);
 	}
 	
 	try

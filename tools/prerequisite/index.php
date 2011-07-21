@@ -56,8 +56,10 @@ if (isset($_REQUEST['error']) AND ($_REQUEST['error'] == 1))
 	{
 		$sth = $dbh->prepare(
 			"SELECT ID, Dept, CourseNumber " .
-			"FROM Course");
+			"FROM Course " .
+			"WHERE ID<>:id");
 		
+		$sth->bindParam(':id', $courseID);
 		$sth->execute();
 	}
 	catch (PDOException $e)

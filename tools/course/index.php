@@ -24,7 +24,10 @@
 	<label for="description">Description</label>
 	<textarea id="description" name="description" cols="60" rows="10"></textarea>
 	
-	<label for="structure">Strucure</label>
+	<label for="structure">Strucure (How often does the course meet and for how
+		long? Is there a lab? If the course is a lab, is there a prelab? Etc.)
+		</label>
+		
 	<textarea id="structure" name="structure" cols="60" rows="10"></textarea>
 	
 	<input type="submit" value="Create New Course" />

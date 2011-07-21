@@ -270,23 +270,6 @@ foreach ($clos as $clo)
 	
 	printImprovementMessages($dbh, $dept, $clo->Outcomes);
 	
-	if ($state == 'Sent')
-	{
-		print '<h4>Recent Data</h4>';
-	}
-	else
-	{
-		print '<h4>Current Data</h4>';
-	}
-	
-	print '<table class="no-border"><thead>';
-	print '<tr><th>Assessment Method</th>';
-	print '<th>Mean Score</th>';
-	print '<th>Median Score</th>';
-	print '<th>High Score</th>';
-	print '<th>Satisfactory Score</th>';
-	print '</thead><tbody>';
-	
 	try
 	{
 		$sth = $dbh->prepare("CALL GetRecentCLOMetrics(:cloid, :term)");
@@ -300,6 +283,28 @@ foreach ($clos as $clo)
 	}
 	
 	$metrics = $sth->fetchAll();
+	
+	if (sizeof($metrics) > 0)
+	{
+		if ($state == 'Sent')
+		{
+			print '<h4>Recent Data</h4>';
+		}
+		else
+		{
+			print '<h4>Current Data</h4>';
+		}
+		
+		print '<table class="no-border"><thead>';
+		print '<tr><th>Assessment Method</th>';
+		print '<th>Mean Score</th>';
+		print '<th>Median Score</th>';
+		print '<th>High Score</th>';
+		print '<th>Satisfactory Score</th>';
+		print '</thead><tbody>';
+	}
+	
+	dbFlush($sth);
 	foreach ($metrics as $metric)
 	{
 		print '<tr>';
