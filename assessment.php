@@ -7,6 +7,7 @@ class Assessment
 	private $median;
 	private $high;
 	private $satisfactory;
+	private $attained;
 	
 	public function getMethod()
 	{
@@ -58,18 +59,30 @@ class Assessment
 		$this->satisfactory = $value;
 	}
 	
+	public function getAttained()
+	{
+		return $this->attained;
+	}
+	
+	public function setAttained($value)
+	{
+		$this->attained = $value;
+	}
+	
 	public function __construct(
 		$method,
 		$satisfactory,
 		$mean = null,
 		$median = null,
-		$high = null)
+		$high = null,
+		$attained = null)
 	{
 		$this->method = $method;
 		$this->mean = $mean;
 		$this->median = $median;
 		$this->high = $high;
 		$this->satisfactory = $satisfactory;
+		$this->attained = $attained;
 	}
 }
 

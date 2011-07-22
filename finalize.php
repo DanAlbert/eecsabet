@@ -14,6 +14,7 @@ $mean = $_POST['mean'];
 $median = $_POST['median'];
 $high = $_POST['high'];
 $satisfactory = $_POST['satisfactory'];
+$attained = $_POST['attained'];
 
 $prep = $_POST['prep'];
 $prepActions = $_POST['prepActions'];
@@ -57,19 +58,22 @@ for ($i = 0; $i < sizeof($method); $i++)
 		$cleanedMedian = cleanIntString(current($median[$cloID]));
 		$cleanedHigh = cleanIntString(current($high[$cloID]));
 		$cleanedSatisfactory = cleanIntString(current($satisfactory[$cloID]));
+		$cleanedAttained = cleanIntString(current($attained[$cloID]));
 		
 		$set->add(new Assessment(
 			$cleanedMethod,
 			$cleanedSatisfactory,
 			$cleanedMean,
 			$cleanedMedian,
-			$cleanedHigh));
+			$cleanedHigh,
+			$cleanedAttained));
 		
 		next($method[$cloID]);
 		next($mean[$cloID]);
 		next($median[$cloID]);
 		next($high[$cloID]);
 		next($satisfactory[$cloID]);
+		next($attained[$cloID]);
 	}
 	
 	$clos[] = $set;
@@ -120,20 +124,23 @@ foreach ($clos as $clo)
 					"Mean, " .
 					"Median, " .
 					"High, " .
-					"Satisfactory) VALUES " .
+					"Satisfactory, " .
+					"Attained) VALUES " .
 				"	(:id, " .
 					":cloid, " .
 					":method, " .
 					":mean, " .
 					":median, " .
 					":high, " .
-					":satisfactory)");
+					":satisfactory, " .
+					":attained)");
 			
 			$sth->bindParam(':method', $a->getMethod());
 			$sth->bindParam(':mean', $a->getMean());
 			$sth->bindParam(':median', $a->getMedian());
 			$sth->bindParam(':high', $a->getHigh());
 			$sth->bindParam(':satisfactory', $a->getSatisfactory());
+			$sth->bindParam(':attained', $a->getAttained());
 			$sth->bindParam(':cloid', $clo->getCLOID());
 			$sth->bindParam(':id', $courseInstanceID);
 			

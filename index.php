@@ -37,6 +37,7 @@
 		var medianName = 'median[' + tableID + '][' + rowNum + ']';
 		var highName = 'high[' + tableID + '][' + rowNum + ']';
 		var satisfactoryName = 'satisfactory[' + tableID + '][' + rowNum + ']';
+		var attainedName = 'attained[' + tableID + '][' + rowNum + ']';
 		
 		var row =
 			'<tr id="' + rowID + '">' +
@@ -58,9 +59,18 @@
 		}
 		
 		row +=
-			'<td><input type="text" name="' + satisfactoryName + '" /></td>' +
-			'<td>' + delButton + '</td>' +
-			'</tr>';
+			'<td><input type="text" name="' + satisfactoryName + '" /></td>';
+		
+		if (state == 'Ready')
+		{
+			row += '<td><input type="text" name="' + attainedName + '" /></td>';
+		}
+		else
+		{
+			row += '<td>Locked until end of term.</td>';
+		}
+		
+		row += '<td>' + delButton + '</td></tr>';
 		
 		$("table#" + tableID + " tbody").append(row);
 	}
@@ -301,6 +311,7 @@ foreach ($clos as $clo)
 		print '<th>Median Score</th>';
 		print '<th>High Score</th>';
 		print '<th>Satisfactory Score</th>';
+		print '<th>% Who Attained</th>';
 		print '</thead><tbody>';
 	}
 	
@@ -353,6 +364,15 @@ foreach ($clos as $clo)
 			print '<td>' . $metric->Satisfactory . '%</td>';
 		}
 		
+		if ($metric->Attained == '')
+		{
+			print '<td>N/A</td>';
+		}
+		else
+		{
+			print '<td>' . $metric->Attained . '%</td>';
+		}
+		
 		print '</tr>';
 	}
 	
@@ -366,6 +386,7 @@ foreach ($clos as $clo)
 		print '<th>Median Score</th>';
 		print '<th>High Score</th>';
 		print '<th>Satisfactory Score</th>';
+		print '<th>% Who Attained</th>';
 		print '<th>Remove</th>';
 		print '</thead><tbody>';
 		
@@ -382,6 +403,8 @@ foreach ($clos as $clo)
 			
 			print '<td><input type="text" name="satisfactory[' . $clo->ID .
 				'][0]" /></td>';
+			
+			print '<td>Locked until end of term.</td>';
 			
 			print '<td><button type="button" onclick="remove(' . $clo->ID .
 				', 0)">Remove</button></td>';
@@ -403,6 +426,8 @@ foreach ($clos as $clo)
 				print '<td><input type="text" name="satisfactory[' . $clo->ID .
 					'][' . $i . ']" value="' . $metric->Satisfactory .
 					'" /></td>';
+			
+				print '<td>Locked until end of term.</td>';
 				
 				print '<td><button type="button" onclick="remove(' . $clo->ID .
 					', ' . $i . ')">Remove</button></td>';
@@ -431,6 +456,10 @@ foreach ($clos as $clo)
 				
 				print '<td><input type="text" name="satisfactory[' . $clo->ID .
 					'][' . $i . ']" value="' . $metric->Satisfactory .
+					'" /></td>';
+				
+				print '<td><input type="text" name="attained[' . $clo->ID .
+					'][' . $i . ']" value="' . $metric->Attained .
 					'" /></td>';
 				
 				print '<td><button type="button" onclick="remove(' . $clo->ID .

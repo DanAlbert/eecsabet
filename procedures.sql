@@ -338,7 +338,8 @@ BEGIN
 			CLOAssessment.Mean,
 			CLOAssessment.Median,
 			CLOAssessment.High,
-			CLOAssessment.Satisfactory
+			CLOAssessment.Satisfactory,
+			CLOAssessment.Attained
 	FROM CLOAssessment, CourseInstance
 	WHERE	CLOAssessment.CLOID=pCLOID AND
 			CLOAssessment.CourseInstanceID=CourseInstance.ID AND
