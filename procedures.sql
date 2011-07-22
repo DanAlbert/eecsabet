@@ -347,7 +347,8 @@ BEGIN
 									WHERE	CourseInstance.TermID<=pTermID AND
 											CourseInstance.State<>'Sent'
 									ORDER BY TermID DESC
-									LIMIT 1);
+									LIMIT 1)
+	ORDER BY CLOAssessment.Method;
 END$$
 DELIMITER ;
 
@@ -477,4 +478,64 @@ BEGIN
 			(	Outcomes.Outcome=UPPER(pOutcome) OR
 				Outcomes.Outcome=LOWER(pOutcome));
 END$$
+DELIMITER ;
+
+DELIMITER $$
+DROP PROCEDURE IF EXISTS GetCourseAssessment$$
+CREATE PROCEDURE GetCourseAssessment(	IN pCourseID INT,
+										IN pTermID INT,
+										IN pEmail VARCHAR(255))
+BEGIN
+	SELECT	CONCAT(
+				CLO.CLONumber, '. ', CLO.Description,
+				' (', GROUP_CONCAT(
+						DISTINCT Outcomes.Outcome
+						ORDER BY Outcomes.Outcome ASC
+						SEPARATOR ', '), ')') AS CLO,
+			GROUP_CONCAT(
+				DISTINCT CLOAssessment.Method
+				ORDER BY CLOAssessment.Method
+				SEPARATOR '\r\n') AS Methods,
+			GROUP_CONCAT(
+				DISTINCT CLOAssessment.Satisfactory
+				ORDER BY CLOAssessment.Method
+				SEPARATOR '\r\n') AS Satisfactory,
+			GROUP_CONCAT(
+				DISTINCT CLOAssessment.Attained
+				ORDER BY CLOAssessment.Method
+				SEPARATOR '\r\n') AS Attained
+	FROM	CourseInstance,
+			CLO,
+			CLOAssessment,
+			Outcomes,
+			CLOOutcomes
+	WHERE	CourseInstance.CourseID=pCourseID AND
+			CourseInstance.TermID=pTermID AND
+			CourseInstance.Instructor=pEmail AND
+			CourseInstance.ID=CLOAssessment.CourseInstanceID AND
+			CLOAssessment.CLOID=CLO.ID AND
+			CLO.ID=CLOOutcomes.CLOID AND
+			CLOOutcomes.OutcomeID=Outcomes.ID
+	GROUP BY CLO.ID
+	ORDER BY CLO.CLONumber;
+END $$
+DELIMITER ;
+
+DELIMITER $$
+DROP PROCEDURE IF EXISTS GetCourseComments$$
+CREATE PROCEDURE GetCourseComments(	IN pCourseID INT,
+										IN pTermID INT,
+										IN pEmail VARCHAR(255))
+BEGIN
+	SELECT	CourseInstance.CommentPrep AS Prep,
+			CourseInstance.CommentPrepActions AS PrepActions,
+			CourseInstance.CommentChanges AS Changes,
+			CourseInstance.CommentCLO AS CLO,
+			CourseInstance.CommentRecs AS Recs
+	FROM	Course,
+			CourseInstance
+	WHERE	CourseInstance.CourseID=pCourseID AND
+			CourseInstance.TermID=pTermID AND
+			CourseInstance.Instructor=pEmail;
+END $$
 DELIMITER ;

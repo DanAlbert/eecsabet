@@ -435,6 +435,8 @@ foreach ($clos as $clo)
 				
 				print '<td><button type="button" onclick="remove(' . $clo->ID .
 					', ' . $i . ')">Remove</button></td>';
+				
+				$i++;
 			}
 			break;
 		}

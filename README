@@ -83,6 +83,21 @@ tools/course/index.php:
 tools/course/create.php:
 	Creates a new Course.
 
+tools/course-assessment/index.php:
+	Displays course assessment information.
+
+tools/course-assessment/get-info.php:
+	Gets course assessment information.
+
+tools/course-assessment/get-instructor.php:
+	Gets a list of instructors for a given course and term.
+
+tools/course-assessment/get-offerings.php:
+	Gets a list of courses which have finalized instances.
+
+tools/course-assessment/get-terms.php:
+	Gets a list of terms that a given course has been offered.
+
 tools/course-content/index.php:
 	Forms for creating and deleting CourseContent.
 

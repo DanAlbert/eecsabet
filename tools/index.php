@@ -12,8 +12,9 @@
 <a href="syllabus/dump.php">Generate All LaTeX Syllabi</a>-->
 
 <h5>Curriculum and Program Outcome Information</h5>
-<a href="program-outcome/index.php">Program Outcome Information</a>  |
-<a href="improvement/index.php">Curriculum Improvement Messages</a>
+<a href="program-outcome/index.php">Program Outcome Information</a> |
+<a href="improvement/index.php">Curriculum Improvement Messages</a> |
+<a href="course-assessment/index.php">Course Assessments</a>
 
 <h5>Course Offerings</h5>
 <a href="instructor/index.php">Add an Instructor</a> |
