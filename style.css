@@ -14,6 +14,11 @@ h1, h2, h3, h4, h5, h6
 	margin-top: 10px;
 }
 
+h3.notice
+{
+	color: #006000;
+}
+
 p.error
 {
 	color: #ff0000;

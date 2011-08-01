@@ -90,6 +90,26 @@
 <br />
 <?php
 
+if (isset($_REQUEST['error']))
+{
+	print '<p class="error">';
+	switch ($_REQUEST['error'])
+	{
+	case 0:
+		print 'Information submitted successfully.';
+		break;
+		
+	case 1:
+		print 'You must complete all of the fields below before proceeding.';
+		break;
+	
+	default:
+		print 'Unknown error.';
+		break;
+	}
+	print '</p>';
+}
+
 if (!isset($_REQUEST['courseInstanceID']))
 {
 	print '<p>No course instance ID provided. Please use the link provided to' .
@@ -124,6 +144,12 @@ catch (PDOException $e)
 
 $rows = $sth->fetchAll();
 $row = $rows[0];
+
+if ($row->State == 'Finalized')
+{
+	print '<h3 class="notice">You have completed all course information. You ' .
+		'may now close this window.</h3>';
+}
 
 $termID = $row->TermID;
 $year = floor($termID / 100);
@@ -217,24 +243,6 @@ if ($state == 'Finalized')
 		'contact <a href="mailto:someone@gmail.com">this person</a>.<p>';
 }
 
-if (isset($_REQUEST['error']))
-{
-	switch ($_REQUEST['error'])
-	{
-	case 0:
-		print 'Information submitted successfully.';
-		break;
-		
-	case 1:
-		print 'You must provide all fields before proceeding.';
-		break;
-	
-	case 2:
-		print 'Unknown error.';
-		break;
-	}
-}
-
 print '<h2>Course Learning Outcomes (CLOs)</h2>';
 
 if ($state != 'Finalized')
@@ -310,7 +318,7 @@ foreach ($clos as $clo)
 		print '<th>Mean Score</th>';
 		print '<th>Median Score</th>';
 		print '<th>High Score</th>';
-		print '<th>Satisfactory Score</th>';
+		print '<th>Satisfactory Score %</th>';
 		print '<th>% Who Attained</th>';
 		print '</thead><tbody>';
 	}
@@ -385,7 +393,7 @@ foreach ($clos as $clo)
 		print '<th>Mean Score</th>';
 		print '<th>Median Score</th>';
 		print '<th>High Score</th>';
-		print '<th>Satisfactory Score</th>';
+		print '<th>Satisfactory Score %</th>';
 		print '<th>% Who Attained</th>';
 		print '<th>Remove</th>';
 		print '</thead><tbody>';
